@@ -12,7 +12,8 @@ import io.reactivex.subjects.Subject
 class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     val layoutId: Int,
     val dataUpdater: Observable<List<D>>,
-    val bindData: ((D, Binding) -> Unit)? = null
+    val bindData: ((D, Binding) -> Unit)? = null,
+    override val differHandler: DifferHandler<D> = DifferHandler()
 ) : AdapterSpec<D, Binding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.createDefault<List<D>>(emptyList()).toSerialized()
