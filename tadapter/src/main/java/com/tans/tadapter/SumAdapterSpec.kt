@@ -18,6 +18,41 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
     override val dataSubject: Subject<List<SumAdapterDataItem<LD, RD>>> =
         BehaviorSubject.createDefault<List<SumAdapterDataItem<LD, RD>>>(emptyList()).toSerialized()
 
+    override val differHandler: DifferHandler<SumAdapterDataItem<LD, RD>> = object : DifferHandler<SumAdapterDataItem<LD, RD>>() {
+
+        override fun areItemsTheSame(
+            oldItem: SumAdapterDataItem<LD, RD>,
+            newItem: SumAdapterDataItem<LD, RD>
+        ): Boolean {
+            return when {
+                oldItem is SumAdapterDataItem.Left && newItem is SumAdapterDataItem.Left -> {
+                    leftSpec.differHandler.areItemsTheSame(oldItem.left, newItem.left)
+                }
+
+                oldItem is SumAdapterDataItem.Right && newItem is SumAdapterDataItem.Right -> {
+                    rightSpec.differHandler.areItemsTheSame(oldItem.right, newItem.right)
+                }
+                else -> false
+            }
+        }
+
+        override fun areContentsTheSame(
+            oldItem: SumAdapterDataItem<LD, RD>,
+            newItem: SumAdapterDataItem<LD, RD>
+        ): Boolean {
+            return when {
+                oldItem is SumAdapterDataItem.Left && newItem is SumAdapterDataItem.Left -> {
+                    leftSpec.differHandler.areContentsTheSame(oldItem.left, newItem.left)
+                }
+
+                oldItem is SumAdapterDataItem.Right && newItem is SumAdapterDataItem.Right -> {
+                    rightSpec.differHandler.areContentsTheSame(oldItem.right, newItem.right)
+                }
+                else -> false
+            }
+        }
+    }
+
     override fun dataUpdater(): Observable<List<SumAdapterDataItem<LD, RD>>> {
         val l: Observable<List<SumAdapterDataItem<LD, RD>>> = leftSpec.dataUpdater()
             .toLeft()

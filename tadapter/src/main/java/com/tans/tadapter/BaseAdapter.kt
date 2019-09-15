@@ -7,9 +7,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
-    val adapterSpec: AdapterSpec<D, Binding>,
-    val differCallBack: DiffUtil.ItemCallback<D> = defaultDifferCallBack()
-) : ListAdapter<D, BaseViewHolder<Binding>>(differCallBack), BindLife {
+    val adapterSpec: AdapterSpec<D, Binding>
+) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife {
 
     override fun getItemViewType(position: Int): Int {
         return adapterSpec.itemType(position)
@@ -27,6 +26,14 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) =
         adapterSpec.bindData(getItem(position), holder.binding)
 
+    override fun onBindViewHolder(
+        holder: BaseViewHolder<Binding>,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        super.onBindViewHolder(holder, position, payloads)
+    }
+
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         adapterSpec.dataUpdater()
@@ -40,9 +47,14 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     }
 }
 
-fun <D> defaultDifferCallBack() = object : DiffUtil.ItemCallback<D>() {
-    override fun areItemsTheSame(oldItem: D, newItem: D): Boolean = false
-    override fun areContentsTheSame(oldItem: D, newItem: D): Boolean = false
+open class DifferHandler<D>(
+    val itemsTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
+    val contentTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false }) : DiffUtil.ItemCallback<D>() {
+
+    override fun areItemsTheSame(oldItem: D, newItem: D): Boolean = itemsTheSame(oldItem, newItem)
+
+    override fun areContentsTheSame(oldItem: D, newItem: D): Boolean =
+        contentTheSame(oldItem, newItem)
 }
 
 open class BaseViewHolder<Binding : ViewDataBinding>(val binding: Binding) :

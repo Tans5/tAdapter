@@ -11,6 +11,8 @@ interface AdapterSpec<D, Binding: ViewDataBinding> {
 
     val dataSubject: Subject<List<D>>
 
+    val differHandler: DifferHandler<D>
+
     fun itemType(position: Int): Int
 
     fun canHandleTypes(): List<Int>
