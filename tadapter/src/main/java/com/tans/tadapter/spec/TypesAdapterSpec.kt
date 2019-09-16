@@ -1,8 +1,9 @@
-package com.tans.tadapter
+package com.tans.tadapter.spec
 
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import com.tans.tadapter.DifferHandler
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
@@ -17,10 +18,12 @@ import kotlin.RuntimeException
 class TypesAdapterSpec<D>(val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
                           val typeHandler: (D) -> Int,
                           val dataGetter: Observable<List<D>>,
-                          val dataBind: (D, ViewDataBinding) -> Unit) : AdapterSpec<D, ViewDataBinding> {
+                          val dataBind: (D, ViewDataBinding) -> Unit) :
+    AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
-    override val differHandler: DifferHandler<D> = DifferHandler()
+    override val differHandler: DifferHandler<D> =
+        DifferHandler()
 
     override fun itemType(position: Int, item: D): Int {
         val layoutId = typeHandler(item)

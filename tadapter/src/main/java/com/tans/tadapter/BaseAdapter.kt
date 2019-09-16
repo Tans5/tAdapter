@@ -5,10 +5,13 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.tans.tadapter.core.BindLife
+import com.tans.tadapter.spec.AdapterSpec
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     val adapterSpec: AdapterSpec<D, Binding>
-) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife {
+) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler),
+    BindLife {
 
     override fun getItemViewType(position: Int): Int {
         return adapterSpec.itemType(position, getItem(position))

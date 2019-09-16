@@ -1,4 +1,4 @@
-package com.tans.tadapter
+package com.example.tadapter.core
 
 import android.util.Log
 import io.reactivex.Completable

@@ -1,8 +1,10 @@
-package com.tans.tadapter
+package com.tans.tadapter.spec
 
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import com.tans.tadapter.BaseAdapter
+import com.tans.tadapter.DifferHandler
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.Subject
