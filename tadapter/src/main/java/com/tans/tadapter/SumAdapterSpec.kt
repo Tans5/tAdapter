@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import io.reactivex.Maybe
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
@@ -77,8 +78,17 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         data.map { item -> SumAdapterDataItem.Right<LD, RD>(right = item) }
     }
 
-    private fun isLeft(position: Int): Maybe<Boolean> = dataSubject.firstElement()
-        .flatMap {
+    private fun isLeft(position: Int): Maybe<Boolean> = childrenSize()
+        .flatMapMaybe {(leftItemSize, rightItemSize) ->
+            when (position) {
+                in 0 until leftItemSize -> Maybe.just(true)
+                in leftItemSize until leftItemSize + rightItemSize -> Maybe.just(false)
+                else -> Maybe.empty<Boolean>()
+            }
+        }
+
+    private fun childrenSize(): Single<Pair<Int, Int>> = dataSubject.firstOrError()
+        .map {
             val leftItemSize = it.sumBy { item ->
                 if (item is SumAdapterDataItem.Left) {
                     1
@@ -93,23 +103,23 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
                     0
                 }
             }
-            when (position) {
-                in 0 until leftItemSize -> Maybe.just(true)
-                in leftItemSize until leftItemSize + rightItemSize -> Maybe.just(false)
-                else -> Maybe.empty<Boolean>()
-            }
+            leftItemSize to rightItemSize
         }
 
-    override fun itemType(position: Int): Int = isLeft(position)
-        .map {
-            if (it) {
-                leftSpec.itemType(position)
-            } else {
-                rightSpec.itemType(position)
+    override fun itemType(position: Int, item: SumAdapterDataItem<LD, RD>): Int {
+        val (leftSize, rightSize) = childrenSize().blockingGet()
+
+        return when {
+            item is SumAdapterDataItem.Left && position < leftSize -> {
+                leftSpec.itemType(position, item.left)
             }
+            item is SumAdapterDataItem.Right && position in leftSize until leftSize + rightSize -> {
+                rightSpec.itemType(position - leftSize, item.right)
+            }
+            else -> 0
         }
-        .toSingle(0)
-        .blockingGet()
+
+    }
 
     override fun canHandleTypes(): List<Int> = leftSpec.canHandleTypes() + rightSpec.canHandleTypes()
 

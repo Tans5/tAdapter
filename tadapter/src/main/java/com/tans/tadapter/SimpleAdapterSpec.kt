@@ -22,7 +22,7 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
         dataSubject.onNext(it)
     }
 
-    override fun itemType(position: Int): Int = layoutId
+    override fun itemType(position: Int, item: D): Int = layoutId
 
     override fun canHandleTypes(): List<Int> = listOf(layoutId)
 

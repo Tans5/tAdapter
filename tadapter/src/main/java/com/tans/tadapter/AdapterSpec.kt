@@ -13,7 +13,7 @@ interface AdapterSpec<D, Binding: ViewDataBinding> {
 
     val differHandler: DifferHandler<D>
 
-    fun itemType(position: Int): Int
+    fun itemType(position: Int, item: D): Int
 
     fun canHandleTypes(): List<Int>
 

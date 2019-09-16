@@ -11,7 +11,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife {
 
     override fun getItemViewType(position: Int): Int {
-        return adapterSpec.itemType(position)
+        return adapterSpec.itemType(position, getItem(position))
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Binding> =
