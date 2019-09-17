@@ -25,6 +25,14 @@ interface AdapterSpec<D, Binding: ViewDataBinding> {
 
     fun dataUpdater(): Observable<List<D>>
 
+    fun adapterAttachToRecyclerView() {
+
+    }
+
+    fun adapterDetachToRecyclerView() {
+
+    }
+
 }
 
 fun <D, Binding: ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()

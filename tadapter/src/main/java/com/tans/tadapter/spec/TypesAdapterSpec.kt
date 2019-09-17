@@ -18,12 +18,11 @@ import kotlin.RuntimeException
 class TypesAdapterSpec<D>(val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
                           val typeHandler: (D) -> Int,
                           val dataGetter: Observable<List<D>>,
-                          val dataBind: (D, ViewDataBinding) -> Unit) :
+                          val dataBind: (D, ViewDataBinding) -> Unit,
+                          override val differHandler: DifferHandler<D> = DifferHandler()) :
     AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
-    override val differHandler: DifferHandler<D> =
-        DifferHandler()
 
     override fun itemType(position: Int, item: D): Int {
         val layoutId = typeHandler(item)

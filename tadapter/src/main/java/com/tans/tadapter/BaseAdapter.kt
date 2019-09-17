@@ -39,6 +39,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
+        adapterSpec.adapterAttachToRecyclerView()
         adapterSpec.dataUpdater()
             .doOnNext { submitList(it) }
             .bindLife()
@@ -46,6 +47,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
+        adapterSpec.adapterDetachToRecyclerView()
         lifeCompositeDisposable.clear()
     }
 }
