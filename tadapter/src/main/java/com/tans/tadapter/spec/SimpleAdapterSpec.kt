@@ -13,7 +13,7 @@ import io.reactivex.subjects.Subject
 class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     val layoutId: Int,
     val dataUpdater: Observable<List<D>>,
-    val bindData: ((D, Binding) -> Unit)? = null,
+    val bindData: ((D, Binding) -> Unit) = { _, _ -> Unit},
     override val differHandler: DifferHandler<D> = DifferHandler()
 ) : AdapterSpec<D, Binding> {
 
@@ -32,6 +32,6 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
         DataBindingUtil.inflate(LayoutInflater.from(context), layoutId, parent, false)
 
     override fun bindData(data: D, binding: Binding) {
-        bindData?.invoke(data, binding)
+        bindData.invoke(data, binding)
     }
 }

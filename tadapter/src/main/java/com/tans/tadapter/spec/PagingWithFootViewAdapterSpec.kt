@@ -17,35 +17,105 @@ import io.reactivex.subjects.Subject
  * date: 2019-09-17
  */
 
-class PagingWithFootViewAdapterSpec<D, Binding : ViewDataBinding> : AdapterSpec<D, Binding>, BindLife,
-    Output<PagingWithFootViewState> {
+class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
+        LBinding : ViewDataBinding,
+        EBinding : ViewDataBinding>(
+    val contentLayoutId: Int,
+    val loadingLayoutId: Int,
+    val errorLayoutId: Int,
+    val bindData: (D, DBinding) -> Unit = { _, _ -> Unit },
+    val bindDataError: (Throwable, EBinding) -> Unit = { _, _ -> Unit },
+    differHandler: DifferHandler<D> = DifferHandler()
+) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>, BindLife, Output<PagingWithFootViewState> {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
-    override val outputSubject: Subject<PagingWithFootViewState> = Output.defaultOutputSubject(PagingWithFootViewState.LoadingMore)
+    override val outputSubject: Subject<PagingWithFootViewState> =
+        Output.defaultOutputSubject(PagingWithFootViewState.LoadingMore)
 
+    val dataAdapterSpec = SimpleAdapterSpec<D, DBinding>(
+        layoutId = contentLayoutId,
+        bindData = bindData,
+        dataUpdater = Observable.just(emptyList()))
 
-    override val dataSubject: Subject<List<D>> = BehaviorSubject.createDefault<List<D>>(emptyList()).toSerialized()
-    override val differHandler: DifferHandler<D> = DifferHandler()
+    val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
+        layoutId = loadingLayoutId,
+        bindData = { _, _ -> Unit },
+        dataUpdater = Observable.just(emptyList()))
 
-    override fun itemType(position: Int, item: D): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    val errorAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.Error, EBinding>(
+        layoutId = errorLayoutId,
+        bindData = { errorState, binding -> bindDataError(errorState.e, binding) },
+        dataUpdater = Observable.just(emptyList()))
+
+    val combineAdapterSpec = dataAdapterSpec + loadingAdapterSpec + errorAdapterSpec
+
+    override val dataSubject: Subject<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
+            PagingWithFootViewState.Error>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<SumAdapterDataItem<D,
+            PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
+
+    override val differHandler = object
+        : DifferHandler<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
+            PagingWithFootViewState.Error>>() {
+
+        override fun areItemsTheSame(
+            oldItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
+            newItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
+        ): Boolean {
+            return if (oldItem.left?.left != null && newItem.left?.left != null) {
+                differHandler.areItemsTheSame(oldItem = oldItem.left!!.left!!, newItem = newItem.left!!.left!!)
+            } else {
+                false
+            }
+        }
+
+        override fun areContentsTheSame(
+            oldItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
+            newItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
+        ): Boolean {
+            return if (oldItem.left?.left != null && newItem.left?.left != null) {
+                differHandler.areContentsTheSame(oldItem = oldItem.left!!.left!!, newItem = newItem.left!!.left!!)
+            } else {
+                false
+            }
+        }
+
     }
 
-    override fun canHandleTypes(): List<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun itemType(
+        position: Int,
+        item: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
+    ): Int {
+        return when (item) {
+            is SumAdapterDataItem.Left -> {
+                when (item.left) {
+                    is SumAdapterDataItem.Left -> {
+                        contentLayoutId
+                    }
+                    is SumAdapterDataItem.Right -> {
+                        loadingLayoutId
+                    }
+                }
+            }
+            is SumAdapterDataItem.Right -> {
+                errorLayoutId
+            }
+        }
     }
 
-    override fun createBinding(context: Context, parent: ViewGroup, viewType: Int): Binding {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun canHandleTypes(): List<Int> = listOf(contentLayoutId, loadingLayoutId, errorLayoutId)
 
-    override fun bindData(data: D, binding: Binding) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun dataUpdater(): Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>>
+            = combineAdapterSpec.dataUpdater()
 
-    override fun dataUpdater(): Observable<List<D>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
+            : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
+
+    override fun bindData(
+        data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
+        binding: ViewDataBinding
+    ) {
+        combineAdapterSpec.bindData(data, binding)
     }
 
 
@@ -55,5 +125,5 @@ class PagingWithFootViewAdapterSpec<D, Binding : ViewDataBinding> : AdapterSpec<
 sealed class PagingWithFootViewState {
     object LoadingMore : PagingWithFootViewState()
     object Finish : PagingWithFootViewState()
-    object Error : PagingWithFootViewState()
+    class Error(val e: Throwable) : PagingWithFootViewState()
 }
