@@ -38,7 +38,7 @@ class TypesAdapterSpec<D>(val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
 
-    override fun bindData(data: D, binding: ViewDataBinding) {
+    override fun bindData(position: Int, data: D, binding: ViewDataBinding) {
         dataBind(data, binding)
     }
 

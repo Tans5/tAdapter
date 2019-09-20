@@ -135,18 +135,19 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         }
 
 
-    override fun bindData(data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding) {
+    override fun bindData(position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding) {
+        val (leftSize, rightSize) = childrenSize().blockingGet()
         when (data) {
             is SumAdapterDataItem.Left -> {
                 val lBinding: LBinding? = (binding as? LBinding)
                 if (lBinding != null) {
-                    leftSpec.bindData(data.left, lBinding)
+                    leftSpec.bindData(position, data.left, lBinding)
                 }
             }
             is SumAdapterDataItem.Right -> {
                 val rBinding: RBinding? = (binding as? RBinding)
                 if (rBinding != null) {
-                    rightSpec.bindData(data.right, rBinding)
+                    rightSpec.bindData(position - leftSize, data.right, rBinding)
                 }
             }
         }

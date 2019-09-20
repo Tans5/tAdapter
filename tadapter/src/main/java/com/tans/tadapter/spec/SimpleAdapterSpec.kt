@@ -31,7 +31,7 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
             : Binding =
         DataBindingUtil.inflate(LayoutInflater.from(context), layoutId, parent, false)
 
-    override fun bindData(data: D, binding: Binding) {
+    override fun bindData(position: Int, data: D, binding: Binding) {
         bindData.invoke(data, binding)
     }
 }

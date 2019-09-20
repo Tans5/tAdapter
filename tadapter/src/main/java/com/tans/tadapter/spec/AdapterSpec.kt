@@ -21,7 +21,7 @@ interface AdapterSpec<D, Binding: ViewDataBinding> {
 
     fun createBinding(context: Context, parent: ViewGroup, viewType: Int): Binding
 
-    fun bindData(data: D, binding: Binding)
+    fun bindData(position: Int, data: D, binding: Binding)
 
     fun dataUpdater(): Observable<List<D>>
 
