@@ -25,13 +25,13 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val contentLayoutId: Int,
     val loadingLayoutId: Int,
     val errorLayoutId: Int,
-    val bindData: (D, DBinding) -> Unit = { _, _ -> Unit },
-    val bindDataError: (Throwable, EBinding) -> Unit = { _, _ -> Unit },
+    val bindDataContent: (Int, D, DBinding) -> Unit = { _, _, _ -> Unit  },
+    val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
     val dataGetter: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Observable<List<D>> = { Observable.empty<List<D>>() },
     val loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { },
     differHandler: DifferHandler<D> = DifferHandler()
 ) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>,
-    BindLife, Output<PagingWithFootViewState> {
+    Output<PagingWithFootViewState> {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -40,22 +40,22 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     val dataAdapterSpec = SimpleAdapterSpec<D, DBinding>(
         layoutId = contentLayoutId,
-        bindData = { item, binding ->
-            bindData(item, binding)
+        bindData = { position, item, binding ->
+            bindDataContent(position, item, binding)
             isLastData(item)
                 .flatMap { isLastData ->
-                   if (isLastData) {
-                       bindOutputState()
-                           .firstOrError()
-                           .map { state ->
-                               if (state is PagingWithFootViewState.LoadingMore) {
-                                   loadNextPage
-                               }
-                               Unit
-                           }
-                   } else {
-                       Single.just(Unit)
-                   }
+                    if (isLastData) {
+                        bindOutputState()
+                            .firstOrError()
+                            .map { state ->
+                                if (state is PagingWithFootViewState.LoadingMore) {
+                                    loadNextPage
+                                }
+                                Unit
+                            }
+                    } else {
+                        Single.just(Unit)
+                    }
                 }
                 .bindLife()
 
@@ -65,7 +65,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
-        bindData = { _, _ -> Unit },
+        bindData = { _, _, _ -> Unit },
         dataUpdater = bindOutputState().map { state ->
             if (state is PagingWithFootViewState.LoadingMore) {
                 listOf(state)
@@ -76,7 +76,13 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     val errorAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.Error, EBinding>(
         layoutId = errorLayoutId,
-        bindData = { errorState, binding -> bindDataError(errorState.e, binding) },
+        bindData = { position, errorState, binding ->
+            bindDataError(
+                position,
+                errorState.e,
+                binding
+            )
+        },
         dataUpdater = bindOutputState().map { state ->
             if (state is PagingWithFootViewState.Error) {
                 listOf(state)
@@ -87,6 +93,11 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     )
 
     val combineAdapterSpec = dataAdapterSpec + loadingAdapterSpec + errorAdapterSpec
+
+    override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> =
+        combineAdapterSpec.dataSubject
+
+    override val bindData: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, binding: ViewDataBinding) -> Unit = combineAdapterSpec.bindData
 
     override val dataSubject: Subject<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
             PagingWithFootViewState.Error>>> = combineAdapterSpec.dataSubject
@@ -150,19 +161,8 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override fun canHandleTypes(): List<Int> =
         listOf(contentLayoutId, loadingLayoutId, errorLayoutId)
 
-    override fun dataUpdater(): Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> =
-        combineAdapterSpec.dataUpdater()
-
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
-
-    override fun bindData(
-        position: Int,
-        data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
-        binding: ViewDataBinding
-    ) {
-        combineAdapterSpec.bindData(position, data, binding)
-    }
 
     fun isLastData(item: D): Single<Boolean> = dataSubject
         .firstOrError()
@@ -188,21 +188,21 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
             item == lastData
         }
 
-    override fun adapterAttachToRecyclerView() {
-        super.adapterAttachToRecyclerView()
-    }
-
-    override fun adapterDetachToRecyclerView() {
-        super.adapterDetachToRecyclerView()
-        lifeCompositeDisposable.clear()
-    }
-
     fun error(e: Throwable): Completable = updateState { PagingWithFootViewState.Error(e) }
 
     fun loadingMore(): Completable = updateState { PagingWithFootViewState.LoadingMore }
 
     fun finish(): Completable = updateState { PagingWithFootViewState.Finish }
 
+    override fun adapterAttachToRecyclerView() {
+        super.adapterAttachToRecyclerView()
+        combineAdapterSpec.adapterAttachToRecyclerView()
+    }
+
+    override fun adapterDetachToRecyclerView() {
+        super.adapterDetachToRecyclerView()
+        combineAdapterSpec.adapterDetachToRecyclerView()
+    }
 
 }
 

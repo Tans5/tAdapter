@@ -27,7 +27,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         )
 
     override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) =
-        adapterSpec.bindData(getItem(position), holder.binding)
+        adapterSpec.bindData(position, getItem(position), holder.binding)
 
     override fun onBindViewHolder(
         holder: BaseViewHolder<Binding>,
@@ -40,7 +40,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         adapterSpec.adapterAttachToRecyclerView()
-        adapterSpec.dataUpdater()
+        adapterSpec.dataSubject
             .doOnNext { submitList(it) }
             .bindLife()
     }

@@ -47,21 +47,21 @@ class MainActivity : AppCompatActivity(), InputOwner {
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
             layoutId = R.layout.layout_item_type_1,
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
-            bindData = { data: Product, binding: LayoutItemType1Binding ->
+            bindData = { _, data: Product, binding: LayoutItemType1Binding ->
                 binding.data = data
                 binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id})
         ) + SimpleAdapterSpec<Product, LayoutItemType2Binding>(layoutId = R.layout.layout_item_type_2,
             dataUpdater = viewModel.bindOutputState().map { it.type2Products.second },
-            bindData = { data: Product, binding: LayoutItemType2Binding ->
+            bindData = { _, data: Product, binding: LayoutItemType2Binding ->
                 binding.data = data
                 binding.root.setOnClickListener { type2NextPage.onNext(Unit) }
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id})
         ) + SimpleAdapterSpec<Product, LayoutItemType3Binding>(layoutId = R.layout.layout_item_type_3,
             dataUpdater =viewModel.bindOutputState().map { it.type3Products.second },
-            bindData = { data: Product, binding: LayoutItemType3Binding ->
+            bindData = { _, data: Product, binding: LayoutItemType3Binding ->
                 binding.data = data
                 binding.root.setOnClickListener { type3NextPage.onNext(Unit) }
             },
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.layout_item_type_2, parent, false)
             }),
             typeHandler = { if (it.id % 2 == 0) R.layout.layout_item_type_1 else R.layout.layout_item_type_2 },
-            dataBind = { data, binding ->
+            bindData = { _, data, binding ->
                 when (binding) {
                     is LayoutItemType1Binding -> {
                         binding.data = data
@@ -91,9 +91,9 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 }
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }),
-            dataGetter = viewModel.bindOutputState().map { it.type1Products.second }).toAdapter()
+            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second }).toAdapter()
 
-        binding.testRv.adapter = typesAdapter
+        binding.testRv.adapter = sumAdapter
 
     }
 }

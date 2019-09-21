@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import com.tans.tadapter.DifferHandler
 import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
 import kotlin.RuntimeException
@@ -15,14 +16,18 @@ import kotlin.RuntimeException
  * date: 2019-09-16
  */
 
-class TypesAdapterSpec<D>(val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
-                          val typeHandler: (D) -> Int,
-                          val dataGetter: Observable<List<D>>,
-                          val dataBind: (D, ViewDataBinding) -> Unit,
-                          override val differHandler: DifferHandler<D> = DifferHandler()) :
+class TypesAdapterSpec<D>(
+    val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
+    val typeHandler: (D) -> Int,
+    override val bindData: (Int, D, ViewDataBinding) -> Unit,
+    override val dataUpdater: Observable<List<D>>,
+    override val differHandler: DifferHandler<D> = DifferHandler()
+) :
     AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
+
+    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun itemType(position: Int, item: D): Int {
         val layoutId = typeHandler(item)
@@ -35,17 +40,12 @@ class TypesAdapterSpec<D>(val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -
 
     override fun canHandleTypes(): List<Int> = layoutIdAndBinding.keys.toList()
 
-    override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
-            : ViewDataBinding = (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
-
-    override fun bindData(position: Int, data: D, binding: ViewDataBinding) {
-        dataBind(data, binding)
-    }
-
-    override fun dataUpdater(): Observable<List<D>> = dataGetter
-        .doOnNext {
-            dataSubject.onNext(it)
-        }
+    override fun createBinding(
+        context: Context,
+        parent: ViewGroup,
+        viewType: Int
+    ): ViewDataBinding =
+        (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
 
 
 }
