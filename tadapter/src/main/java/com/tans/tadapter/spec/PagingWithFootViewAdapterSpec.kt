@@ -25,8 +25,9 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val loadingLayoutId: Int,
     val errorLayoutId: Int,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
+    val loadingStateUpdater: Observable<PagingWithFootViewState>,
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
-    val loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { }
+    val loadNextPage: () -> Unit = { }
 ) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>,
     Output<PagingWithFootViewState> {
 
@@ -130,6 +131,12 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     override fun adapterAttachToRecyclerView() {
         super.adapterAttachToRecyclerView()
+        loadingStateUpdater.distinctUntilChanged()
+            .flatMapCompletable { newState ->
+                updateState { newState }
+            }
+            .bindLife()
+
         combineAdapterSpec.adapterAttachToRecyclerView()
     }
 
@@ -151,13 +158,15 @@ sealed class PagingWithFootViewState {
 fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
     loadingLayoutId: Int,
     errorLayoutId: Int,
+    loadingStateUpdater: Observable<PagingWithFootViewState>,
     bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
-    loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { }
+    loadNextPage: () -> Unit = { }
 )
         : PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding> =
     PagingWithFootViewAdapterSpec(
         loadingLayoutId = loadingLayoutId,
         errorLayoutId = errorLayoutId,
         dataAdapterSpec = this,
+        loadingStateUpdater = loadingStateUpdater,
         bindDataError = bindDataError,
         loadNextPage = loadNextPage)

@@ -99,22 +99,19 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 loadingLayoutId = R.layout.layout_item_loading,
                 errorLayoutId = R.layout.layout_item_error,
                 loadNextPage = {
-                    println("Loading More")
-                    viewModel.bindOutputState()
-                        .map {
-                            it.type1Products.first.finished
+                    type1NextPage.onNext(Unit)
+                },
+                loadingStateUpdater = viewModel.bindOutputState()
+                    .distinctUntilChanged()
+                    .map {
+                        val (nextParams, list) = it.type1Products
+                        when {
+                            nextParams.finished -> PagingWithFootViewState.Finish
+                            nextParams.isError -> PagingWithFootViewState.Error(e = Throwable("Loading More Error"))
+                            list.isEmpty() -> PagingWithFootViewState.InitLoading
+                            else -> PagingWithFootViewState.LoadingMore
                         }
-                        .firstOrError()
-                        .flatMapCompletable {
-                            if (it) {
-                                finish()
-                            } else {
-                                type1NextPage.onNext(Unit)
-                                loadingMore()
-                            }
-                        }
-                        .bindLife()
-                }
+                    }
             )
             .toAdapter()
 
