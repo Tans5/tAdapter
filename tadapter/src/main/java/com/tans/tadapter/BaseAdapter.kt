@@ -41,6 +41,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         super.onAttachedToRecyclerView(recyclerView)
         adapterSpec.adapterAttachToRecyclerView()
         adapterSpec.dataSubject
+            .distinctUntilChanged()
             .doOnNext { submitList(it) }
             .bindLife()
     }

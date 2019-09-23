@@ -33,7 +33,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override val outputSubject: Subject<PagingWithFootViewState> =
-        Output.defaultOutputSubject(PagingWithFootViewState.LoadingMore)
+        Output.defaultOutputSubject(PagingWithFootViewState.InitLoading)
 
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
@@ -84,7 +84,8 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
                             bindOutputState()
                                 .firstOrError()
                                 .map { state ->
-                                    if (state is PagingWithFootViewState.LoadingMore) {
+                                    if (state is PagingWithFootViewState.LoadingMore ||
+                                            state is PagingWithFootViewState.InitLoading) {
                                         loadNextPage()
                                     }
                                     Unit
@@ -115,28 +116,10 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
 
-    fun isLastData(item: D): Single<Boolean> = dataSubject
+    fun isLastData(item: D): Single<Boolean> = dataAdapterSpec.dataSubject
         .firstOrError()
         .map { sumItem ->
-            val lastData = sumItem.asReversed()
-                .find {
-                    when (it) {
-                        is SumAdapterDataItem.Left -> {
-                            when (it.left) {
-                                is SumAdapterDataItem.Left -> {
-                                    true
-                                }
-                                is SumAdapterDataItem.Right -> {
-                                    false
-                                }
-                            }
-                        }
-                        is SumAdapterDataItem.Right -> {
-                            false
-                        }
-                    }
-                }?.left?.left
-            item == lastData
+            item == sumItem[sumItem.lastIndex]
         }
 
     fun error(e: Throwable): Completable = updateState { PagingWithFootViewState.Error(e) }
@@ -159,6 +142,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
 
 sealed class PagingWithFootViewState {
+    object InitLoading : PagingWithFootViewState()
     object LoadingMore : PagingWithFootViewState()
     object Finish : PagingWithFootViewState()
     class Error(val e: Throwable) : PagingWithFootViewState()

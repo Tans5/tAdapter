@@ -38,6 +38,15 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type3ProductsNext = type3NextPage), this)
         viewModel.init()
 
+        val simpleAdapter = SimpleAdapterSpec<Product, LayoutItemType1Binding>(
+            layoutId = R.layout.layout_item_type_1,
+            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
+            bindData = { _, data: Product, binding: LayoutItemType1Binding ->
+                binding.data = data
+                binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
+            },
+            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } )).toAdapter()
+
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
             layoutId = R.layout.layout_item_type_1,
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
@@ -52,14 +61,14 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 binding.data = data
                 binding.root.setOnClickListener { type2NextPage.onNext(Unit) }
             },
-            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id})
+            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } )
         ) + SimpleAdapterSpec<Product, LayoutItemType3Binding>(layoutId = R.layout.layout_item_type_3,
             dataUpdater =viewModel.bindOutputState().map { it.type3Products.second },
             bindData = { _, data: Product, binding: LayoutItemType3Binding ->
                 binding.data = data
                 binding.root.setOnClickListener { type3NextPage.onNext(Unit) }
             },
-            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id})
+            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } )
         )).toAdapter()
 
         val typesAdapter = TypesAdapterSpec<Product>(
@@ -84,7 +93,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
                     }
                 }
             },
-            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }),
+            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new }),
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second })
             .pagingWithFootView<Product, ViewDataBinding, LayoutItemLoadingBinding, LayoutItemErrorBinding>(
                 loadingLayoutId = R.layout.layout_item_loading,

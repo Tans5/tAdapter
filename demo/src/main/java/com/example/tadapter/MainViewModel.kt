@@ -22,6 +22,7 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
         with(inputOwner) {
             input?.type1ProductsNext
                 ?.withLatestFrom(bindOutputState().map { it.type1Products.first })
+                ?.filter { !it.second.finished }
                 ?.flatMapSingle { (_, params) ->
                     productService.getProducts(page = params.page)
                         .switchThread()
@@ -40,6 +41,7 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
 
             input?.type2ProductsNext
                 ?.withLatestFrom(bindOutputState().map { it.type2Products.first })
+                ?.filter { !it.second.finished }
                 ?.flatMapSingle { (_, params) ->
                     productService.getProducts(page = params.page)
                         .switchThread()
@@ -53,6 +55,7 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
 
             input?.type3ProductsNext
                 ?.withLatestFrom(bindOutputState().map { it.type3Products.first })
+                ?.filter { !it.second.finished }
                 ?.flatMapSingle { (_, params) ->
                     productService.getProducts(page = params.page)
                         .switchThread()
