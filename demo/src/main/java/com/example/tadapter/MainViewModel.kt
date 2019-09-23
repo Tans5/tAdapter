@@ -28,7 +28,12 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
                         .flatMap { products ->
                             updateState { state ->
                                 val (param, list) = state.type1Products
-                                state.copy(type1Products = param.copy(param.page + 1) to list + products)
+                                val nexPageParam = if (param.page >= 10) {
+                                    param.copy(finished = true)
+                                } else {
+                                    param.copy(page = param.page + 1)
+                                }
+                                state.copy(type1Products = nexPageParam to list + products)
                             }.toSingleDefault(Unit)
                         }
                 }?.bindInputLife()
@@ -107,7 +112,9 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
 
 }
 
-data class ProductsServiceParams(val page: Int = 1)
+data class ProductsServiceParams(val page: Int = 1,
+                                 val finished: Boolean = false,
+                                 val isError: Boolean = false)
 
 data class MainOutputState(
     val type1Products: Pair<ProductsServiceParams, List<Product>> = ProductsServiceParams() to emptyList(),

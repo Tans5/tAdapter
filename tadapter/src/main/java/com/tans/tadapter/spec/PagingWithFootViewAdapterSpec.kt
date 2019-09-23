@@ -22,14 +22,11 @@ import io.reactivex.subjects.Subject
 class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         LBinding : ViewDataBinding,
         EBinding : ViewDataBinding>(
-    val contentLayoutId: Int,
     val loadingLayoutId: Int,
     val errorLayoutId: Int,
-    val bindDataContent: (Int, D, DBinding) -> Unit = { _, _, _ -> Unit  },
+    val dataAdapterSpec: AdapterSpec<D, DBinding>,
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
-    val dataGetter: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Observable<List<D>> = { Observable.empty<List<D>>() },
-    val loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { },
-    differHandler: DifferHandler<D> = DifferHandler()
+    val loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { }
 ) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>,
     Output<PagingWithFootViewState> {
 
@@ -38,35 +35,12 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override val outputSubject: Subject<PagingWithFootViewState> =
         Output.defaultOutputSubject(PagingWithFootViewState.LoadingMore)
 
-    val dataAdapterSpec = SimpleAdapterSpec<D, DBinding>(
-        layoutId = contentLayoutId,
-        bindData = { position, item, binding ->
-            bindDataContent(position, item, binding)
-            isLastData(item)
-                .flatMap { isLastData ->
-                    if (isLastData) {
-                        bindOutputState()
-                            .firstOrError()
-                            .map { state ->
-                                if (state is PagingWithFootViewState.LoadingMore) {
-                                    loadNextPage
-                                }
-                                Unit
-                            }
-                    } else {
-                        Single.just(Unit)
-                    }
-                }
-                .bindLife()
-
-        },
-        dataUpdater = dataGetter()
-    )
-
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
         bindData = { _, _, _ -> Unit },
-        dataUpdater = bindOutputState().map { state ->
+        dataUpdater = bindOutputState()
+            .distinctUntilChanged()
+            .map { state ->
             if (state is PagingWithFootViewState.LoadingMore) {
                 listOf(state)
             } else {
@@ -80,10 +54,10 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
             bindDataError(
                 position,
                 errorState.e,
-                binding
-            )
+                binding)
         },
-        dataUpdater = bindOutputState().map { state ->
+        dataUpdater = bindOutputState().distinctUntilChanged()
+            .map { state ->
             if (state is PagingWithFootViewState.Error) {
                 listOf(state)
             } else {
@@ -97,69 +71,46 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> =
         combineAdapterSpec.dataSubject
 
-    override val bindData: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, binding: ViewDataBinding) -> Unit = combineAdapterSpec.bindData
+    override val bindData: (
+        position: Int,
+        data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
+        binding: ViewDataBinding
+    ) -> Unit = { position, item, binding ->
+        if (item is SumAdapterDataItem.Left) {
+            if (item.left is SumAdapterDataItem.Left) {
+                isLastData(item.left.left)
+                    .flatMap { isLastData ->
+                        if (isLastData) {
+                            bindOutputState()
+                                .firstOrError()
+                                .map { state ->
+                                    if (state is PagingWithFootViewState.LoadingMore) {
+                                        loadNextPage()
+                                    }
+                                    Unit
+                                }
+                        } else {
+                            Single.just(Unit)
+                        }
+                    }
+                    .bindLife()
+            }
+        }
+        combineAdapterSpec.bindData(position, item, binding)
+    }
 
     override val dataSubject: Subject<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-            PagingWithFootViewState.Error>>> = combineAdapterSpec.dataSubject
+            PagingWithFootViewState.Error>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
+            PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
 
-    override val differHandler = object
-        :
-        DifferHandler<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-                PagingWithFootViewState.Error>>() {
-
-        override fun areItemsTheSame(
-            oldItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
-            newItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
-        ): Boolean {
-            return if (oldItem.left?.left != null && newItem.left?.left != null) {
-                differHandler.areItemsTheSame(
-                    oldItem = oldItem.left!!.left!!,
-                    newItem = newItem.left!!.left!!
-                )
-            } else {
-                false
-            }
-        }
-
-        override fun areContentsTheSame(
-            oldItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
-            newItem: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
-        ): Boolean {
-            return if (oldItem.left?.left != null && newItem.left?.left != null) {
-                differHandler.areContentsTheSame(
-                    oldItem = oldItem.left!!.left!!,
-                    newItem = newItem.left!!.left!!
-                )
-            } else {
-                false
-            }
-        }
-
-    }
+    override val differHandler = combineAdapterSpec.differHandler
 
     override fun itemType(
         position: Int,
         item: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>
-    ): Int {
-        return when (item) {
-            is SumAdapterDataItem.Left -> {
-                when (item.left) {
-                    is SumAdapterDataItem.Left -> {
-                        contentLayoutId
-                    }
-                    is SumAdapterDataItem.Right -> {
-                        loadingLayoutId
-                    }
-                }
-            }
-            is SumAdapterDataItem.Right -> {
-                errorLayoutId
-            }
-        }
-    }
+    ): Int = combineAdapterSpec.itemType(position, item)
 
-    override fun canHandleTypes(): List<Int> =
-        listOf(contentLayoutId, loadingLayoutId, errorLayoutId)
+    override fun canHandleTypes(): List<Int> = combineAdapterSpec.canHandleTypes()
 
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
@@ -212,3 +163,17 @@ sealed class PagingWithFootViewState {
     object Finish : PagingWithFootViewState()
     class Error(val e: Throwable) : PagingWithFootViewState()
 }
+
+fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
+    loadingLayoutId: Int,
+    errorLayoutId: Int,
+    bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
+    loadNextPage: PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding>.() -> Unit = { }
+)
+        : PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding> =
+    PagingWithFootViewAdapterSpec(
+        loadingLayoutId = loadingLayoutId,
+        errorLayoutId = errorLayoutId,
+        dataAdapterSpec = this,
+        bindDataError = bindDataError,
+        loadNextPage = loadNextPage)

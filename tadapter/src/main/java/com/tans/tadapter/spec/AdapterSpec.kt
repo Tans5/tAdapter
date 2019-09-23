@@ -28,6 +28,7 @@ interface AdapterSpec<D, Binding: ViewDataBinding> : BindLife {
 
     fun adapterAttachToRecyclerView() {
         dataUpdater
+            .distinctUntilChanged()
             .doOnNext {
                 dataSubject.onNext(it)
             }

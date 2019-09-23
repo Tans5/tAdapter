@@ -7,16 +7,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.ViewModelProvider
 import com.example.tadapter.core.InputOwner
-import com.example.tadapter.databinding.ActivityMainBinding
-import com.example.tadapter.databinding.LayoutItemType1Binding
-import com.example.tadapter.databinding.LayoutItemType2Binding
-import com.example.tadapter.databinding.LayoutItemType3Binding
+import com.example.tadapter.databinding.*
 import com.example.tadapter.model.Product
 import com.tans.tadapter.DifferHandler
-import com.tans.tadapter.spec.SimpleAdapterSpec
-import com.tans.tadapter.spec.TypesAdapterSpec
-import com.tans.tadapter.spec.plus
-import com.tans.tadapter.spec.toAdapter
+import com.tans.tadapter.spec.*
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -91,9 +85,31 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 }
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }),
-            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second }).toAdapter()
+            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second })
+            .pagingWithFootView<Product, ViewDataBinding, LayoutItemLoadingBinding, LayoutItemErrorBinding>(
+                loadingLayoutId = R.layout.layout_item_loading,
+                errorLayoutId = R.layout.layout_item_error,
+                loadNextPage = {
+                    println("Loading More")
+                    viewModel.bindOutputState()
+                        .map {
+                            it.type1Products.first.finished
+                        }
+                        .firstOrError()
+                        .flatMapCompletable {
+                            if (it) {
+                                finish()
+                            } else {
+                                type1NextPage.onNext(Unit)
+                                loadingMore()
+                            }
+                        }
+                        .bindLife()
+                }
+            )
+            .toAdapter()
 
-        binding.testRv.adapter = sumAdapter
+        binding.testRv.adapter = typesAdapter
 
     }
 }
