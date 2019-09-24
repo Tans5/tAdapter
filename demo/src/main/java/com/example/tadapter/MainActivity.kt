@@ -45,7 +45,9 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 binding.data = data
                 binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
             },
-            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } )).toAdapter()
+            differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } ))
+            .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
+            .toAdapter()
 
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
             layoutId = R.layout.layout_item_type_1,
@@ -115,7 +117,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             )
             .toAdapter()
 
-        binding.testRv.adapter = typesAdapter
+        binding.testRv.adapter = simpleAdapter
 
     }
 }

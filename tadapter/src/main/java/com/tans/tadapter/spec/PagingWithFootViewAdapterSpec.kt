@@ -27,14 +27,15 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
     val loadingStateUpdater: Observable<PagingWithFootViewState>,
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
-    val loadNextPage: () -> Unit = { }
+    val loadNextPage: () -> Unit = { },
+    val initShowLoading: Boolean = false
 ) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>,
     Output<PagingWithFootViewState> {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override val outputSubject: Subject<PagingWithFootViewState> =
-        Output.defaultOutputSubject(PagingWithFootViewState.InitLoading)
+        Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.InitLoading else PagingWithFootViewState.LoadingMore)
 
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
@@ -160,7 +161,8 @@ fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewD
     errorLayoutId: Int,
     loadingStateUpdater: Observable<PagingWithFootViewState>,
     bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
-    loadNextPage: () -> Unit = { }
+    loadNextPage: () -> Unit = { },
+    initShowLoading: Boolean = false
 )
         : PagingWithFootViewAdapterSpec<D, DBinding, LBinding, EBinding> =
     PagingWithFootViewAdapterSpec(
@@ -169,4 +171,5 @@ fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewD
         dataAdapterSpec = this,
         loadingStateUpdater = loadingStateUpdater,
         bindDataError = bindDataError,
-        loadNextPage = loadNextPage)
+        loadNextPage = loadNextPage,
+        initShowLoading = initShowLoading)
