@@ -11,6 +11,8 @@ import com.example.tadapter.databinding.*
 import com.example.tadapter.model.Product
 import com.tans.tadapter.DifferHandler
 import com.tans.tadapter.spec.*
+import io.reactivex.Maybe
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -47,6 +49,11 @@ class MainActivity : AppCompatActivity(), InputOwner {
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id }, contentTheSame = { old, new -> old == new } ))
             .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
+            .errorView<SumAdapterDataItem<Product, Unit>, ViewDataBinding, LayoutErrorBinding>(errorLayout = R.layout.layout_error,
+                errorChecker = viewModel.bindOutputState()
+                    .distinctUntilChanged()
+                    .map { it.type1Products.first }
+                    .flatMapMaybe { if (it.page == 5) Maybe.just(Throwable("TestError")) else Maybe.empty() })
             .toAdapter()
 
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
