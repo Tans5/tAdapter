@@ -1,4 +1,4 @@
-package com.tans.tadapter
+package com.tans.tadapter.adapter
 
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
@@ -7,11 +7,14 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
+import io.reactivex.disposables.CompositeDisposable
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     val adapterSpec: AdapterSpec<D, Binding>
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler),
     BindLife {
+
+    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun getItemViewType(position: Int): Int {
         return adapterSpec.itemType(position, getItem(position))

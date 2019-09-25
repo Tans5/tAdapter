@@ -1,16 +1,19 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.graphics.drawable.Drawable
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
-import com.tans.tadapter.BaseAdapter
-import com.tans.tadapter.DifferHandler
+import com.tans.tadapter.adapter.BaseAdapter
+import com.tans.tadapter.adapter.DifferHandler
+import com.tans.tadapter.adapter.SimpleAdapter
+import com.tans.tadapter.adapter.SwipeToRemoveAdapter
 import com.tans.tadapter.core.BindLife
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.Subject
 
-interface AdapterSpec<D, Binding: ViewDataBinding> : BindLife {
+interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     val dataSubject: Subject<List<D>>
 
@@ -41,7 +44,18 @@ interface AdapterSpec<D, Binding: ViewDataBinding> : BindLife {
 
 }
 
-fun <D, Binding: ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
-        : BaseAdapter<D, Binding> = object : BaseAdapter<D, Binding>(adapterSpec = this) {
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
-}
+fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
+        : BaseAdapter<D, Binding> = SimpleAdapter(this)
+
+fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
+    deleteIcon: Drawable? = null,
+    background: Drawable,
+    removeCallback: (position: Int, item: D) -> Unit
+)
+        : BaseAdapter<D, Binding> = SwipeToRemoveAdapter(
+    adapterSpec = this,
+    deleteIcon = deleteIcon,
+    background = background,
+    removeCallBack = removeCallback
+)
+

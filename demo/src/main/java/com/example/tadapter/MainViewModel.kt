@@ -39,6 +39,17 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
                         }
                 }?.bindInputLife()
 
+            input?.type1Remove
+                ?.withLatestFrom(bindOutputState().map { it.type1Products.second })
+                ?.flatMapCompletable { (requestRemoveProduct, list) ->
+                    val newList = list.filter { requestRemoveProduct != it }
+                    updateState {
+                        val type1Products = it.type1Products.first to newList
+                        it.copy(type1Products = type1Products)
+                    }
+                }
+                ?.bindInputLife()
+
             input?.type2ProductsNext
                 ?.withLatestFrom(bindOutputState().map { it.type2Products.first })
                 ?.filter { !it.second.finished }
@@ -126,6 +137,7 @@ data class MainOutputState(
 
 data class MainInput(
     val type1ProductsNext: Observable<Unit>,
+    val type1Remove: Observable<Product>,
     val type2ProductsNext: Observable<Unit>,
     val type3ProductsNext: Observable<Unit>
 )

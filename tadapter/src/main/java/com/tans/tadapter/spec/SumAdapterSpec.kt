@@ -3,7 +3,7 @@ package com.tans.tadapter.spec
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
-import com.tans.tadapter.DifferHandler
+import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single

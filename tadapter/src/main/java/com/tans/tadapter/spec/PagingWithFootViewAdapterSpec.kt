@@ -3,8 +3,6 @@ package com.tans.tadapter.spec
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
-import com.tans.tadapter.DifferHandler
-import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.core.Output
 import io.reactivex.Completable
 import io.reactivex.Observable
