@@ -51,4 +51,12 @@ dependencies {
     implementation deps.rxJava.kotlin
     implementation deps.rxAndroid.runtime
 
+    // Paging
+    implementation deps.paging.runtime
+    implementation deps.paging.common
+    implementation deps.paging.runtimeKtx
+    implementation deps.paging.rxjava2
+    implementation deps.paging.commonKtx
+    implementation deps.paging.rxkotlin
+
 }
