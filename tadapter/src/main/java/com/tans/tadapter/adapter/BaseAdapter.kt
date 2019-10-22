@@ -61,7 +61,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
 open class DifferHandler<D>(
         val itemsTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
         val contentTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
-        val changePayLoad: (oldItem: D, newItem: D) -> Any? = { _, _ -> false }) : DiffUtil.ItemCallback<D>() {
+        val changePayLoad: (oldItem: D, newItem: D) -> Any? = { _, _ -> null }) : DiffUtil.ItemCallback<D>() {
 
     override fun areItemsTheSame(oldItem: D, newItem: D): Boolean = itemsTheSame(oldItem, newItem)
 
