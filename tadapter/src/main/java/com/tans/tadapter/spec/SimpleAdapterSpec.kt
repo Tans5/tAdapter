@@ -14,6 +14,7 @@ import io.reactivex.subjects.Subject
 class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     val layoutId: Int,
     override val bindData: ((Int, D, Binding) -> Unit) = { _, _, _ -> Unit},
+    override val bindDataPayload: (position: Int, data: D, binding: Binding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },
     override val dataUpdater: Observable<List<D>>,
     override val differHandler: DifferHandler<D> = DifferHandler()
 ) : AdapterSpec<D, Binding> {

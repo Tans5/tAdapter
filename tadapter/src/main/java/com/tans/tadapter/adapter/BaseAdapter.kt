@@ -10,9 +10,9 @@ import com.tans.tadapter.spec.AdapterSpec
 import io.reactivex.disposables.CompositeDisposable
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
-    val adapterSpec: AdapterSpec<D, Binding>
+        val adapterSpec: AdapterSpec<D, Binding>
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler),
-    BindLife {
+        BindLife {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -21,32 +21,34 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Binding> =
-        BaseViewHolder(
-            adapterSpec.createBinding(
-                context = parent.context,
-                parent = parent,
-                viewType = viewType
+            BaseViewHolder(
+                    adapterSpec.createBinding(
+                            context = parent.context,
+                            parent = parent,
+                            viewType = viewType
+                    )
             )
-        )
 
     override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) =
-        adapterSpec.bindData(position, getItem(position), holder.binding)
+            adapterSpec.bindData(position, getItem(position), holder.binding)
 
     override fun onBindViewHolder(
-        holder: BaseViewHolder<Binding>,
-        position: Int,
-        payloads: MutableList<Any>
+            holder: BaseViewHolder<Binding>,
+            position: Int,
+            payloads: MutableList<Any>
     ) {
-        super.onBindViewHolder(holder, position, payloads)
+        if (payloads.isEmpty() || !adapterSpec.bindDataPayload(position, getItem(position), holder.binding, payloads)) {
+            onBindViewHolder(holder, position)
+        }
     }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         adapterSpec.adapterAttachToRecyclerView()
         adapterSpec.dataSubject
-            .distinctUntilChanged()
-            .doOnNext { submitList(it) }
-            .bindLife()
+                .distinctUntilChanged()
+                .doOnNext { submitList(it) }
+                .bindLife()
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
@@ -57,14 +59,17 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
 }
 
 open class DifferHandler<D>(
-    val itemsTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
-    val contentTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false }) : DiffUtil.ItemCallback<D>() {
+        val itemsTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
+        val contentTheSame: (oldItem: D, newItem: D) -> Boolean = { _, _ -> false },
+        val changePayLoad: (oldItem: D, newItem: D) -> Any? = { _, _ -> false }) : DiffUtil.ItemCallback<D>() {
 
     override fun areItemsTheSame(oldItem: D, newItem: D): Boolean = itemsTheSame(oldItem, newItem)
 
     override fun areContentsTheSame(oldItem: D, newItem: D): Boolean =
-        contentTheSame(oldItem, newItem)
+            contentTheSame(oldItem, newItem)
+
+    override fun getChangePayload(oldItem: D, newItem: D): Any? = changePayLoad(oldItem, newItem)
 }
 
 open class BaseViewHolder<Binding : ViewDataBinding>(val binding: Binding) :
-    RecyclerView.ViewHolder(binding.root)
+        RecyclerView.ViewHolder(binding.root)

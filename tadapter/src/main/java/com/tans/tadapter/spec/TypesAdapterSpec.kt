@@ -17,13 +17,14 @@ import kotlin.RuntimeException
  */
 
 class TypesAdapterSpec<D>(
-    val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
-    val typeHandler: (D) -> Int,
-    override val bindData: (Int, D, ViewDataBinding) -> Unit,
-    override val dataUpdater: Observable<List<D>>,
-    override val differHandler: DifferHandler<D> = DifferHandler()
+        val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
+        val typeHandler: (D) -> Int,
+        override val bindData: (Int, D, ViewDataBinding) -> Unit,
+        override val bindDataPayload: (position: Int, data: D, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },
+        override val dataUpdater: Observable<List<D>>,
+        override val differHandler: DifferHandler<D> = DifferHandler()
 ) :
-    AdapterSpec<D, ViewDataBinding> {
+        AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
 
@@ -41,11 +42,11 @@ class TypesAdapterSpec<D>(
     override fun canHandleTypes(): List<Int> = layoutIdAndBinding.keys.toList()
 
     override fun createBinding(
-        context: Context,
-        parent: ViewGroup,
-        viewType: Int
+            context: Context,
+            parent: ViewGroup,
+            viewType: Int
     ): ViewDataBinding =
-        (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
+            (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
 
 
 }

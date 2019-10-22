@@ -23,6 +23,8 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     val bindData: (position: Int, data: D, binding: Binding) -> Unit
 
+    val bindDataPayload: (position: Int, data: D, binding: Binding, payloads: List<Any>) -> Boolean
+
     fun itemType(position: Int, item: D): Int
 
     fun canHandleTypes(): List<Int>
@@ -31,11 +33,11 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     fun adapterAttachToRecyclerView() {
         dataUpdater
-            .distinctUntilChanged()
-            .doOnNext {
-                dataSubject.onNext(it)
-            }
-            .bindLife()
+                .distinctUntilChanged()
+                .doOnNext {
+                    dataSubject.onNext(it)
+                }
+                .bindLife()
     }
 
     fun adapterDetachToRecyclerView() {
@@ -48,14 +50,14 @@ fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
         : BaseAdapter<D, Binding> = SimpleAdapter(this)
 
 fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
-    deleteIcon: Drawable? = null,
-    background: Drawable,
-    removeCallback: (position: Int, item: D) -> Unit
+        deleteIcon: Drawable? = null,
+        background: Drawable,
+        removeCallback: (position: Int, item: D) -> Unit
 )
         : BaseAdapter<D, Binding> = SwipeToRemoveAdapter(
-    adapterSpec = this,
-    deleteIcon = deleteIcon,
-    background = background,
-    removeCallBack = removeCallback
+        adapterSpec = this,
+        deleteIcon = deleteIcon,
+        background = background,
+        removeCallBack = removeCallback
 )
 

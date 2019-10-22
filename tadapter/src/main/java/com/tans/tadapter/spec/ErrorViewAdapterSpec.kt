@@ -16,46 +16,49 @@ import io.reactivex.subjects.Subject
  */
 
 class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
-    val errorLayout: Int,
-    val dataAdapterSpec: AdapterSpec<D, DBinding>,
-    val errorChecker: Observable<Throwable>,
-    val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
+        val errorLayout: Int,
+        val dataAdapterSpec: AdapterSpec<D, DBinding>,
+        val errorChecker: Observable<Throwable>,
+        val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
 ) : AdapterSpec<SumAdapterDataItem<D, Throwable>, ViewDataBinding> {
 
     val errorDataSpec: SimpleAdapterSpec<Throwable, EBinding> = SimpleAdapterSpec(
-        layoutId = errorLayout,
-        dataUpdater = errorChecker.distinctUntilChanged().map {
-            dataAdapterSpec.dataSubject.onNext(
-                emptyList()
-            ); listOf(it)
-        },
-        bindData = bindDataError
+            layoutId = errorLayout,
+            dataUpdater = errorChecker.distinctUntilChanged().map {
+                dataAdapterSpec.dataSubject.onNext(
+                        emptyList()
+                ); listOf(it)
+            },
+            bindData = bindDataError
     )
 
     val combineAdapterSpec = dataAdapterSpec + errorDataSpec
 
     override val dataSubject: Subject<List<SumAdapterDataItem<D, Throwable>>> =
-        BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Throwable>>>(emptyList())
-            .toSerialized()
+            BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Throwable>>>(emptyList())
+                    .toSerialized()
 
     override val differHandler: DifferHandler<SumAdapterDataItem<D, Throwable>> =
-        combineAdapterSpec.differHandler
+            combineAdapterSpec.differHandler
 
     override val dataUpdater: Observable<List<SumAdapterDataItem<D, Throwable>>> =
-        combineAdapterSpec.dataSubject
+            combineAdapterSpec.dataSubject
 
     override val bindData: (position: Int, data: SumAdapterDataItem<D, Throwable>, binding: ViewDataBinding) -> Unit =
-        combineAdapterSpec.bindData
+            combineAdapterSpec.bindData
+
+    override val bindDataPayload: (position: Int, data: SumAdapterDataItem<D, Throwable>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean =
+            combineAdapterSpec.bindDataPayload
 
     override fun itemType(position: Int, item: SumAdapterDataItem<D, Throwable>): Int =
-        combineAdapterSpec.itemType(position, item)
+            combineAdapterSpec.itemType(position, item)
 
     override fun canHandleTypes(): List<Int> = combineAdapterSpec.canHandleTypes()
 
     override fun createBinding(
-        context: Context,
-        parent: ViewGroup,
-        viewType: Int
+            context: Context,
+            parent: ViewGroup,
+            viewType: Int
     ): ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
@@ -73,11 +76,11 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 }
 
 fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.errorView(
-    errorLayout: Int,
-    errorChecker: Observable<Throwable>,
-    bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
+        errorLayout: Int,
+        errorChecker: Observable<Throwable>,
+        bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
 ): ErrorViewAdapterSpec<D, DBinding, EBinding> = ErrorViewAdapterSpec(
-    errorLayout = errorLayout,
-    dataAdapterSpec = this,
-    errorChecker = errorChecker,
-    bindDataError = bindDataError)
+        errorLayout = errorLayout,
+        dataAdapterSpec = this,
+        errorChecker = errorChecker,
+        bindDataError = bindDataError)
