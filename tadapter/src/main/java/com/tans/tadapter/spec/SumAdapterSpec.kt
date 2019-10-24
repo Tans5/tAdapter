@@ -97,6 +97,23 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
                         else -> false
                     }
                 }
+
+                override fun getChangePayload(
+                    oldItem: SumAdapterDataItem<LD, RD>,
+                    newItem: SumAdapterDataItem<LD, RD>
+                ): Any? {
+                    return when {
+                        oldItem is SumAdapterDataItem.Left && newItem is SumAdapterDataItem.Left -> {
+                            leftSpec.differHandler.getChangePayload(oldItem.left, newItem.left)
+                        }
+
+                        oldItem is SumAdapterDataItem.Right && newItem is SumAdapterDataItem.Right -> {
+                            rightSpec.differHandler.getChangePayload(oldItem.right, newItem.right)
+                        }
+                        else -> null
+                    }
+                }
+
             }
 
     override val dataUpdater: Observable<List<SumAdapterDataItem<LD, RD>>> =
