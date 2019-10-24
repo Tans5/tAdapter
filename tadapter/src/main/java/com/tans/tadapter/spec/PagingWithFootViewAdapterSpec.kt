@@ -77,23 +77,8 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
             binding: ViewDataBinding
     ) -> Unit = { position, item, binding ->
         if (item is SumAdapterDataItem.Left) {
-            if (item.left is SumAdapterDataItem.Left) {
-                isLastData(item.left.left)
-                        .flatMap { isLastData ->
-                            if (isLastData) {
-                                bindOutputState()
-                                        .firstOrError()
-                                        .map { state ->
-                                            if (state is PagingWithFootViewState.LoadingMore) {
-                                                loadNextPage()
-                                            }
-                                            Unit
-                                        }
-                            } else {
-                                Single.just(Unit)
-                            }
-                        }
-                        .bindLife()
+            if (item.left is SumAdapterDataItem.Right) {
+                loadNextPage()
             }
         }
         combineAdapterSpec.bindData(position, item, binding)
@@ -116,12 +101,6 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
-
-    fun isLastData(item: D): Single<Boolean> = dataAdapterSpec.dataSubject
-            .firstOrError()
-            .map { sumItem ->
-                item == sumItem[sumItem.lastIndex]
-            }
 
     override fun adapterAttachToRecyclerView() {
         super.adapterAttachToRecyclerView()
