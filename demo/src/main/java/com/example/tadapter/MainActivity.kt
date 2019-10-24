@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = swipeToRemoveAdapter
+        binding.testRv.adapter = typesAdapter
 
     }
 }

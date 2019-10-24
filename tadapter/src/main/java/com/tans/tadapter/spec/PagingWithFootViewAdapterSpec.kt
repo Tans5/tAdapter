@@ -33,7 +33,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override val outputSubject: Subject<PagingWithFootViewState> =
-            Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.InitLoading else PagingWithFootViewState.LoadingMore)
+            Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading)
 
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
             layoutId = loadingLayoutId,
@@ -84,8 +84,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
                                 bindOutputState()
                                         .firstOrError()
                                         .map { state ->
-                                            if (state is PagingWithFootViewState.LoadingMore ||
-                                                    state is PagingWithFootViewState.InitLoading) {
+                                            if (state is PagingWithFootViewState.LoadingMore) {
                                                 loadNextPage()
                                             }
                                             Unit
@@ -124,21 +123,14 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
                 item == sumItem[sumItem.lastIndex]
             }
 
-    fun error(e: Throwable): Completable = updateState { PagingWithFootViewState.Error(e) }
-
-    fun loadingMore(): Completable = updateState { PagingWithFootViewState.LoadingMore }
-
-    fun finish(): Completable = updateState { PagingWithFootViewState.Finish }
-
     override fun adapterAttachToRecyclerView() {
         super.adapterAttachToRecyclerView()
-        loadingStateUpdater.distinctUntilChanged()
-                .flatMapCompletable { newState ->
-                    updateState { newState }
-                }
-                .bindLife()
-
         combineAdapterSpec.adapterAttachToRecyclerView()
+        loadingStateUpdater.distinctUntilChanged()
+            .flatMapCompletable { newState ->
+                updateState { newState }
+            }
+            .bindLife()
     }
 
     override fun adapterDetachToRecyclerView() {
