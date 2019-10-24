@@ -55,8 +55,6 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         adapterSpec.adapterAttachToRecyclerView()
         adapterSpec.dataSubject
             .distinctUntilChanged()
-            .throttleLast(500, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { submitList(it) }
             .bindLife()
     }
