@@ -3,6 +3,7 @@ package com.tans.tadapter.spec
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -58,14 +59,14 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
-    override fun adapterAttachToRecyclerView() {
-        super.adapterAttachToRecyclerView()
-        combineAdapterSpec.adapterAttachToRecyclerView()
+    override fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterAttachToRecyclerView(recyclerView)
+        combineAdapterSpec.adapterAttachToRecyclerView(recyclerView)
     }
 
-    override fun adapterDetachToRecyclerView() {
-        super.adapterDetachToRecyclerView()
-        combineAdapterSpec.adapterDetachToRecyclerView()
+    override fun adapterDetachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterDetachToRecyclerView(recyclerView)
+        combineAdapterSpec.adapterDetachToRecyclerView(recyclerView)
     }
 
 }

@@ -3,6 +3,7 @@ package com.tans.tadapter.spec
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Maybe
 import io.reactivex.Observable
@@ -200,16 +201,16 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         else -> throw RuntimeException("Can't deal viewType: $viewType")
     }
 
-    override fun adapterAttachToRecyclerView() {
-        super.adapterAttachToRecyclerView()
-        leftSpec.adapterAttachToRecyclerView()
-        rightSpec.adapterAttachToRecyclerView()
+    override fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterAttachToRecyclerView(recyclerView)
+        leftSpec.adapterAttachToRecyclerView(recyclerView)
+        rightSpec.adapterAttachToRecyclerView(recyclerView)
     }
 
-    override fun adapterDetachToRecyclerView() {
-        super.adapterDetachToRecyclerView()
-        leftSpec.adapterDetachToRecyclerView()
-        rightSpec.adapterDetachToRecyclerView()
+    override fun adapterDetachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterDetachToRecyclerView(recyclerView)
+        leftSpec.adapterDetachToRecyclerView(recyclerView)
+        rightSpec.adapterDetachToRecyclerView(recyclerView)
     }
 
 

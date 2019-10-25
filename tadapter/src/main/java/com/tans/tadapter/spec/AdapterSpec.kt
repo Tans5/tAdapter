@@ -4,13 +4,13 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.BaseAdapter
 import com.tans.tadapter.adapter.DifferHandler
 import com.tans.tadapter.adapter.SimpleAdapter
 import com.tans.tadapter.adapter.SwipeToRemoveAdapter
 import com.tans.tadapter.core.BindLife
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.Subject
 
 interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
@@ -31,7 +31,7 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     fun createBinding(context: Context, parent: ViewGroup, viewType: Int): Binding
 
-    fun adapterAttachToRecyclerView() {
+    fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
         dataUpdater
                 .distinctUntilChanged()
                 .doOnNext {
@@ -40,7 +40,7 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
                 .bindLife()
     }
 
-    fun adapterDetachToRecyclerView() {
+    fun adapterDetachToRecyclerView(recyclerView: RecyclerView) {
         lifeCompositeDisposable.clear()
     }
 
