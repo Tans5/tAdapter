@@ -117,7 +117,9 @@ class MainActivity : AppCompatActivity(), InputOwner {
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
                 contentTheSame = { old, new -> old == new }),
-            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second })
+            dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
+            hasStableIds = true,
+            itemId = { _, data -> data.id.toLong() })
             .pagingWithFootView<Product, ViewDataBinding, LayoutItemLoadingBinding, LayoutItemErrorBinding>(
                 loadingLayoutId = R.layout.layout_item_loading,
                 errorLayoutId = R.layout.layout_item_error,

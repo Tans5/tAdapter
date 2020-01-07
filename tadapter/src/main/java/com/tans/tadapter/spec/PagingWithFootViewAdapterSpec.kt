@@ -6,9 +6,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.Output
-import io.reactivex.Completable
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.withLatestFrom
@@ -123,6 +121,10 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
                 PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
 
     override val differHandler = combineAdapterSpec.differHandler
+
+    override val itemId: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Long = combineAdapterSpec.itemId
+
+    override val hasStableIds: Boolean = combineAdapterSpec.hasStableIds
 
     override fun itemType(
         position: Int,

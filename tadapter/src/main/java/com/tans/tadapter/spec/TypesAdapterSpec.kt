@@ -3,6 +3,7 @@ package com.tans.tadapter.spec
 import android.content.Context
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -22,9 +23,10 @@ class TypesAdapterSpec<D>(
         override val bindData: (Int, D, ViewDataBinding) -> Unit,
         override val bindDataPayload: (position: Int, data: D, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },
         override val dataUpdater: Observable<List<D>>,
-        override val differHandler: DifferHandler<D> = DifferHandler()
-) :
-        AdapterSpec<D, ViewDataBinding> {
+        override val differHandler: DifferHandler<D> = DifferHandler(),
+        override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
+        override val hasStableIds: Boolean = false
+) : AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
 

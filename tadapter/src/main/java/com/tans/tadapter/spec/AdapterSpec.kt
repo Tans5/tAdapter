@@ -25,6 +25,10 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     val bindDataPayload: (position: Int, data: D, binding: Binding, payloads: List<Any>) -> Boolean
 
+    val itemId: (position: Int, data: D) -> Long
+
+    val hasStableIds: Boolean
+
     fun itemType(position: Int, item: D): Int
 
     fun canHandleTypes(): List<Int>

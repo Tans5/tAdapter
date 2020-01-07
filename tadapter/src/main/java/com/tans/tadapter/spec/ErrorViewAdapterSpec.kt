@@ -54,6 +54,10 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
     override fun itemType(position: Int, item: SumAdapterDataItem<D, Throwable>): Int =
             combineAdapterSpec.itemType(position, item)
 
+    override val hasStableIds: Boolean = combineAdapterSpec.hasStableIds
+
+    override val itemId: (position: Int, data: SumAdapterDataItem<D, Throwable>) -> Long = combineAdapterSpec.itemId
+
     override fun canHandleTypes(): List<Int> = combineAdapterSpec.canHandleTypes()
 
     override fun createBinding(

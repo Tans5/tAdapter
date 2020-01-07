@@ -47,6 +47,10 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     override val bindDataPayload: (position: Int, data: SumAdapterDataItem<D, Unit>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = combineAdapterSpec.bindDataPayload
 
+    override val hasStableIds: Boolean = dataAdapterSpec.hasStableIds
+
+    override val itemId: (position: Int, data: SumAdapterDataItem<D, Unit>) -> Long = combineAdapterSpec.itemId
+
     override fun itemType(position: Int, item: SumAdapterDataItem<D, Unit>): Int = combineAdapterSpec.itemType(position, item)
 
     override fun canHandleTypes(): List<Int> = combineAdapterSpec.canHandleTypes()

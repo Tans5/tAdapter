@@ -64,6 +64,21 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         }
     }
 
+    override val hasStableIds: Boolean = leftSpec.hasStableIds || rightSpec.hasStableIds
+
+    override val itemId: (position: Int, data: SumAdapterDataItem<LD, RD>) -> Long = { position, data ->
+        val (leftSize, _) = childrenSize().blockingGet()
+        when (data) {
+            is SumAdapterDataItem.Left -> {
+                leftSpec.itemId(position, data.left)
+            }
+            is SumAdapterDataItem.Right -> {
+                rightSpec.itemId(position - leftSize, data.right)
+            }
+        }
+    }
+
+
     override val differHandler: DifferHandler<SumAdapterDataItem<LD, RD>> =
             object : DifferHandler<SumAdapterDataItem<LD, RD>>() {
 

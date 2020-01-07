@@ -11,15 +11,23 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import java.util.concurrent.TimeUnit
 
-abstract class BaseAdapter<D, Binding : ViewDataBinding>(
-    val adapterSpec: AdapterSpec<D, Binding>
-) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler),
+abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: AdapterSpec<D, Binding>) : ListAdapter<D, BaseViewHolder<Binding>>(
+    adapterSpec.differHandler
+),
     BindLife {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
+    init {
+        this.setHasStableIds(adapterSpec.hasStableIds)
+    }
+
     override fun getItemViewType(position: Int): Int {
         return adapterSpec.itemType(position, getItem(position))
+    }
+
+    override fun getItemId(position: Int): Long {
+        return adapterSpec.itemId(position, getItem(position))
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Binding> =
@@ -31,8 +39,10 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
             )
         )
 
-    override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) =
+    override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) {
         adapterSpec.bindData(position, getItem(position), holder.binding)
+        holder.binding.executePendingBindings()
+    }
 
     override fun onBindViewHolder(
         holder: BaseViewHolder<Binding>,
