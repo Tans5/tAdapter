@@ -39,8 +39,11 @@ class MainActivity : AppCompatActivity(), InputOwner {
 
         val (type1RemoveRx, type1RemoveCall) = callToObservable<Product>()
 
+        val (type1ItemChangeRx, type1ItemChangeCall) = callToObservable<Product>()
+
         viewModel.setInput(MainInput(type1ProductsNext = type1NextPage,
             type1Remove = type1RemoveRx,
+            type1ItemChanged = type1ItemChangeRx,
             type2ProductsNext = type2NextPage,
             type3ProductsNext = type3NextPage), this)
         viewModel.init()
@@ -103,6 +106,9 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 when (binding) {
                     is LayoutItemType1Binding -> {
                         binding.data = data
+                        binding.root.setOnClickListener {
+                            type1ItemChangeCall(data.copy(name = "New Name"))
+                        }
                     }
 
                     is LayoutItemType2Binding -> {
@@ -114,9 +120,35 @@ class MainActivity : AppCompatActivity(), InputOwner {
                     }
                 }
             },
+            bindDataPayload = { position: Int, data: Product, binding: ViewDataBinding, payloads: List<Any> ->
+                if (payloads.isNotEmpty()) {
+                    when (binding) {
+                        is LayoutItemType1Binding -> {
+                            binding.nameTv.text = "Type1" + data.name
+                        }
+
+                        is LayoutItemType2Binding -> {
+                            binding.nameTv.text = "Type2" + data.name
+                        }
+                        else -> {
+
+                        }
+                    }
+                    true
+                } else {
+                    false
+                }
+            },
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
-                contentTheSame = { old, new -> old == new }),
+                contentTheSame = { old, new -> old == new },
+                changePayLoad = { old, new ->
+                    if (old.name != new.name) {
+                        Any()
+                    } else {
+                        null
+                    }
+                }),
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
             hasStableIds = true,
             itemId = { _, data -> data.id.toLong() })
