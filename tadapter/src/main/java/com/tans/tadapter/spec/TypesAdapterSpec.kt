@@ -1,6 +1,7 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
@@ -49,6 +50,9 @@ class TypesAdapterSpec<D>(
             viewType: Int
     ): ViewDataBinding =
             (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
+
+    // TODO: Deal click
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Unit>> = emptyList()
 
 
 }

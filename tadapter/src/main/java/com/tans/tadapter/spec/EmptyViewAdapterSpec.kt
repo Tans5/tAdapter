@@ -1,6 +1,7 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
@@ -17,9 +18,10 @@ import io.reactivex.subjects.Subject
  */
 
 class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
-        val emptyLayout: Int,
-        val dataAdapterSpec: AdapterSpec<D, DBinding>,
-        val initShowEmpty: Boolean = false) : AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> {
+    val emptyLayout: Int,
+    val dataAdapterSpec: AdapterSpec<D, DBinding>,
+    val initShowEmpty: Boolean = false
+) : AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> {
 
 
     val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(
@@ -36,6 +38,8 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
     )
 
     val combineAdapterSpec = dataAdapterSpec + emptyAdapterSpec
+
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Unit>) -> Unit>> = combineAdapterSpec.itemClicks
 
     override val dataSubject: Subject<List<SumAdapterDataItem<D, Unit>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Unit>>>(emptyList()).toSerialized()
 

@@ -1,6 +1,7 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -161,6 +162,9 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         combineAdapterSpec.adapterDetachToRecyclerView(recyclerView)
         recyclerView.removeOnScrollListener(recyclerViewScrollListener)
     }
+
+    // TODO: Deal click
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Unit>> = emptyList()
 
 }
 

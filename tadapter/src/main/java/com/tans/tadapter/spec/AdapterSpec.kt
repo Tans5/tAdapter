@@ -2,6 +2,7 @@ package com.tans.tadapter.spec
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
@@ -28,6 +29,8 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
     val itemId: (position: Int, data: D) -> Long
 
     val hasStableIds: Boolean
+
+    val itemClicks: List<((binding: Binding, type: Int) -> Pair<View, (position: Int, data: D) -> Unit>)>
 
     fun itemType(position: Int, item: D): Int
 

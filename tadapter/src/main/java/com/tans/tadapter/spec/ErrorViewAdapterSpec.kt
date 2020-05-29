@@ -1,6 +1,7 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
@@ -77,6 +78,10 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
         super.adapterDetachToRecyclerView(recyclerView)
         combineAdapterSpec.adapterDetachToRecyclerView(recyclerView)
     }
+
+    // TODO: Deal click
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Throwable>) -> Unit>>
+        = emptyList()
 
 }
 

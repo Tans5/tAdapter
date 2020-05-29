@@ -7,9 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
-import java.util.concurrent.TimeUnit
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: AdapterSpec<D, Binding>) : ListAdapter<D, BaseViewHolder<Binding>>(
     adapterSpec.differHandler
@@ -30,14 +28,21 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: Adapte
         return adapterSpec.itemId(position, getItem(position))
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Binding> =
-        BaseViewHolder(
-            adapterSpec.createBinding(
-                context = parent.context,
-                parent = parent,
-                viewType = viewType
-            )
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder<Binding> {
+        val binding = adapterSpec.createBinding(
+            context = parent.context,
+            parent = parent,
+            viewType = viewType
         )
+        val holder = BaseViewHolder(binding)
+        adapterSpec.itemClicks.forEach {
+            val (view, handle) = it(binding, viewType)
+            view.setOnClickListener {
+                handle(holder.adapterPosition, getItem(holder.adapterPosition))
+            }
+        }
+        return holder
+    }
 
     override fun onBindViewHolder(holder: BaseViewHolder<Binding>, position: Int) {
         adapterSpec.bindData(position, getItem(position), holder.binding)

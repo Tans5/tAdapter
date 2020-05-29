@@ -3,6 +3,7 @@ package com.example.tadapter
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.ViewModelProvider
@@ -53,18 +54,21 @@ class MainActivity : AppCompatActivity(), InputOwner {
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
             bindData = { _, data: Product, binding: LayoutItemType1Binding ->
                 binding.data = data
-                binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
+                // binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
             },
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
-                contentTheSame = { old, new -> old == new })
+                contentTheSame = { old, new -> old == new }),
+            itemClicks = listOf { binding, _ ->
+                binding.root to { position, data -> Toast.makeText(this, position.toString(), Toast.LENGTH_SHORT).show()}
+            }
         )
-            .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
-            .errorView<SumAdapterDataItem<Product, Unit>, ViewDataBinding, LayoutErrorBinding>(errorLayout = R.layout.layout_error,
-                errorChecker = viewModel.bindOutputState()
-                    .distinctUntilChanged()
-                    .map { it.type1Products.first }
-                    .flatMapMaybe { if (it.page == 5) Maybe.just(Throwable("TestError")) else Maybe.empty() })
+//            .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
+//            .errorView<SumAdapterDataItem<Product, Unit>, ViewDataBinding, LayoutErrorBinding>(errorLayout = R.layout.layout_error,
+//                errorChecker = viewModel.bindOutputState()
+//                    .distinctUntilChanged()
+//                    .map { it.type1Products.first }
+//                    .flatMapMaybe { if (it.page == 5) Maybe.just(Throwable("TestError")) else Maybe.empty() })
             .toAdapter()
 
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
@@ -183,7 +187,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = typesAdapter
+        binding.testRv.adapter = simpleAdapter
 
     }
 }

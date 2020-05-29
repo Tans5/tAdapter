@@ -1,6 +1,7 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
@@ -28,7 +29,7 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         val (leftSize, rightSize) = childrenSize().blockingGet()
         when (data) {
             is SumAdapterDataItem.Left -> {
-                val lBinding: LBinding? = (binding as? LBinding)
+                val lBinding: LBinding? = binding as? LBinding
                 if (lBinding != null) {
                     leftSpec.bindData(position, data.left, lBinding)
                 }
@@ -227,6 +228,9 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         leftSpec.adapterDetachToRecyclerView(recyclerView)
         rightSpec.adapterDetachToRecyclerView(recyclerView)
     }
+
+    // TODO: Deal click
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Unit>> = emptyList()
 
 
 }

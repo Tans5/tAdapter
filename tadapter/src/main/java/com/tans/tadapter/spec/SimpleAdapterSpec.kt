@@ -2,6 +2,7 @@ package com.tans.tadapter.spec
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
@@ -19,7 +20,8 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     override val dataUpdater: Observable<List<D>>,
     override val differHandler: DifferHandler<D> = DifferHandler(),
     override val hasStableIds: Boolean = false,
-    override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID }
+    override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
+    override val itemClicks: List<(binding: Binding, type: Int) -> Pair<View, (position: Int, data: D) -> Unit>> = emptyList()
 ) : AdapterSpec<D, Binding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.createDefault<List<D>>(emptyList()).toSerialized()
