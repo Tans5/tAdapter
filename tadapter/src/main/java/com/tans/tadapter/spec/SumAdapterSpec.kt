@@ -229,8 +229,40 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         rightSpec.adapterDetachToRecyclerView(recyclerView)
     }
 
-    // TODO: Deal click
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Unit>> = emptyList()
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Single<Unit>>?>
+            = leftSpec.itemClicks.map { leftClick ->
+        { binding: ViewDataBinding, type: Int ->
+            if (leftSpec.canHandleTypes().contains(type)) {
+                val viewAndHandle: Pair<View, (Int, LD) -> Single<Unit>>? = leftClick.invoke(binding as LBinding, type)
+                if (viewAndHandle == null) {
+                    null
+                } else {
+                    val (view: View, clickHandle: (Int, LD) -> Single<Unit>) = viewAndHandle
+                    view to { position: Int, data: SumAdapterDataItem<LD, RD> ->
+                        clickHandle(position, data.left!!)
+                    }
+                }
+            } else {
+                null
+            }
+        }
+    } + rightSpec.itemClicks.map { rightClick ->
+        { binding: ViewDataBinding, type: Int ->
+            if (rightSpec.canHandleTypes().contains(type)) {
+                val clickAndHandle = rightClick(binding as RBinding, type)
+                if (clickAndHandle == null) {
+                    null
+                } else {
+                    val (view, clickHandle) = clickAndHandle
+                    view to { position: Int, data: SumAdapterDataItem<LD, RD> ->
+                        clickHandle(position - childrenSize().blockingGet().first, data.right!!)
+                    }
+                }
+            } else {
+                null
+            }
+        }
+    }
 
 
 }

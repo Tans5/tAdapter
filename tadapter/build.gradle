@@ -59,4 +59,8 @@ dependencies {
     implementation deps.paging.commonKtx
     implementation deps.paging.rxkotlin
 
+    // RxBinding
+    implementation deps.rxbinding.runtime
+
+
 }

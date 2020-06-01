@@ -12,6 +12,7 @@ import com.tans.tadapter.adapter.SimpleAdapter
 import com.tans.tadapter.adapter.SwipeToRemoveAdapter
 import com.tans.tadapter.core.BindLife
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.subjects.Subject
 
 interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
@@ -30,7 +31,7 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     val hasStableIds: Boolean
 
-    val itemClicks: List<((binding: Binding, type: Int) -> Pair<View, (position: Int, data: D) -> Unit>)>
+    val itemClicks: List<((binding: Binding, type: Int) -> (Pair<View, (position: Int, data: D) -> Single<Unit>>?))>
 
     fun itemType(position: Int, item: D): Int
 

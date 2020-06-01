@@ -7,6 +7,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
@@ -79,9 +80,8 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
         combineAdapterSpec.adapterDetachToRecyclerView(recyclerView)
     }
 
-    // TODO: Deal click
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Throwable>) -> Unit>>
-        = emptyList()
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Throwable>) -> Single<Unit>>?>
+        = combineAdapterSpec.itemClicks
 
 }
 

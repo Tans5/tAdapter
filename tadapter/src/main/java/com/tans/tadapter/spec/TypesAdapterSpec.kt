@@ -7,6 +7,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
@@ -26,7 +27,8 @@ class TypesAdapterSpec<D>(
         override val dataUpdater: Observable<List<D>>,
         override val differHandler: DifferHandler<D> = DifferHandler(),
         override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
-        override val hasStableIds: Boolean = false
+        override val hasStableIds: Boolean = false,
+        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>> = emptyList()
 ) : AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
@@ -50,9 +52,6 @@ class TypesAdapterSpec<D>(
             viewType: Int
     ): ViewDataBinding =
             (layoutIdAndBinding[viewType] ?: error("Can't deal viewType: $viewType")).invoke(parent)
-
-    // TODO: Deal click
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Unit>> = emptyList()
 
 
 }

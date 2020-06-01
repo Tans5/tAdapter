@@ -14,6 +14,7 @@ import com.example.tadapter.utils.callToObservable
 import com.tans.tadapter.adapter.DifferHandler
 import com.tans.tadapter.spec.*
 import io.reactivex.Maybe
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -54,21 +55,23 @@ class MainActivity : AppCompatActivity(), InputOwner {
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
             bindData = { _, data: Product, binding: LayoutItemType1Binding ->
                 binding.data = data
-                // binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
             },
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
                 contentTheSame = { old, new -> old == new }),
             itemClicks = listOf { binding, _ ->
-                binding.root to { position, data -> Toast.makeText(this, position.toString(), Toast.LENGTH_SHORT).show()}
+                binding.root to { position, data -> Single.fromCallable {
+                    Toast.makeText(this, position.toString(), Toast.LENGTH_SHORT).show()
+                    type1NextPage.onNext(Unit)
+                }}
             }
         )
-//            .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
-//            .errorView<SumAdapterDataItem<Product, Unit>, ViewDataBinding, LayoutErrorBinding>(errorLayout = R.layout.layout_error,
-//                errorChecker = viewModel.bindOutputState()
-//                    .distinctUntilChanged()
-//                    .map { it.type1Products.first }
-//                    .flatMapMaybe { if (it.page == 5) Maybe.just(Throwable("TestError")) else Maybe.empty() })
+            .emptyView<Product, LayoutItemType1Binding, LayoutEmptyBinding>(R.layout.layout_empty, true)
+            .errorView<SumAdapterDataItem<Product, Unit>, ViewDataBinding, LayoutErrorBinding>(errorLayout = R.layout.layout_error,
+                errorChecker = viewModel.bindOutputState()
+                    .distinctUntilChanged()
+                    .map { it.type1Products.first }
+                    .flatMapMaybe { if (it.page == 5) Maybe.just(Throwable("TestError")) else Maybe.empty() })
             .toAdapter()
 
         val sumAdapter = (SimpleAdapterSpec<Product, LayoutItemType1Binding>(
@@ -76,14 +79,28 @@ class MainActivity : AppCompatActivity(), InputOwner {
             dataUpdater = viewModel.bindOutputState().map { it.type1Products.second },
             bindData = { _, data: Product, binding: LayoutItemType1Binding ->
                 binding.data = data
-                binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
+            },
+            itemClicks = listOf { binding, _ ->
+                binding.root to { position, _ ->
+                    Single.fromCallable {
+                        type1NextPage.onNext(Unit)
+                        Toast.makeText(this, "Type1, Position: $position", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
             differHandler = DifferHandler(itemsTheSame = { old, new -> old.id == new.id })
         ) + SimpleAdapterSpec<Product, LayoutItemType2Binding>(layoutId = R.layout.layout_item_type_2,
             dataUpdater = viewModel.bindOutputState().map { it.type2Products.second },
             bindData = { _, data: Product, binding: LayoutItemType2Binding ->
                 binding.data = data
-                binding.root.setOnClickListener { type2NextPage.onNext(Unit) }
+            },
+            itemClicks = listOf { binding, _ ->
+                binding.root to { position, _ ->
+                    Single.fromCallable {
+                        type2NextPage.onNext(Unit)
+                        Toast.makeText(this, "Type2, Position: $position", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
@@ -92,7 +109,14 @@ class MainActivity : AppCompatActivity(), InputOwner {
             dataUpdater =viewModel.bindOutputState().map { it.type3Products.second },
             bindData = { _, data: Product, binding: LayoutItemType3Binding ->
                 binding.data = data
-                binding.root.setOnClickListener { type3NextPage.onNext(Unit) }
+            },
+            itemClicks = listOf { binding, _ ->
+                binding.root to { position, _ ->
+                    Single.fromCallable {
+                        type3NextPage.onNext(Unit)
+                        Toast.makeText(this, "Type3, Position: $position", Toast.LENGTH_SHORT).show()
+                    }
+                }
             },
             differHandler = DifferHandler(
                 itemsTheSame = { old, new -> old.id == new.id },
@@ -187,7 +211,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = simpleAdapter
+        binding.testRv.adapter = sumAdapter
 
     }
 }

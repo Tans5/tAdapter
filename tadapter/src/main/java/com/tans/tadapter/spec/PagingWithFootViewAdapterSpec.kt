@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.Output
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.withLatestFrom
@@ -163,8 +164,8 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         recyclerView.removeOnScrollListener(recyclerViewScrollListener)
     }
 
-    // TODO: Deal click
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Unit>> = emptyList()
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Single<Unit>>?> =
+        combineAdapterSpec.itemClicks
 
 }
 

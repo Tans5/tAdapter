@@ -7,6 +7,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
@@ -39,7 +40,7 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     val combineAdapterSpec = dataAdapterSpec + emptyAdapterSpec
 
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Unit>) -> Unit>> = combineAdapterSpec.itemClicks
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Unit>) -> Single<Unit>>?> = combineAdapterSpec.itemClicks
 
     override val dataSubject: Subject<List<SumAdapterDataItem<D, Unit>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Unit>>>(emptyList()).toSerialized()
 

@@ -5,8 +5,10 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.jakewharton.rxbinding3.view.clicks
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: AdapterSpec<D, Binding>) : ListAdapter<D, BaseViewHolder<Binding>>(
@@ -35,12 +37,18 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: Adapte
             viewType = viewType
         )
         val holder = BaseViewHolder(binding)
-        adapterSpec.itemClicks.forEach {
-            val (view, handle) = it(binding, viewType)
-            view.setOnClickListener {
-                handle(holder.adapterPosition, getItem(holder.adapterPosition))
+        Observable.fromIterable(adapterSpec.itemClicks)
+            .flatMap {
+                val viewAndClickHandle = it(binding, viewType)
+                if (viewAndClickHandle != null) {
+                    val (view, clickHandle) = viewAndClickHandle
+                    view.clicks()
+                        .flatMapSingle { clickHandle(holder.adapterPosition, getItem(holder.adapterPosition)) }
+                } else {
+                    Observable.empty<Unit>()
+                }
             }
-        }
+            .bindLife()
         return holder
     }
 
