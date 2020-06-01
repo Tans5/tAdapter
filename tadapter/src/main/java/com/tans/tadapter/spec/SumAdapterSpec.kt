@@ -11,19 +11,24 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.rxkotlin.zipWith
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
 import java.lang.RuntimeException
 
 class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding>(
         val leftSpec: AdapterSpec<LD, LBinding>,
-        val rightSpec: AdapterSpec<RD, RBinding>
+        val rightSpec: AdapterSpec<RD, RBinding>,
+        val syncDataByHand: Boolean = false
 ) : AdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding> {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override val dataSubject: Subject<List<SumAdapterDataItem<LD, RD>>> =
             BehaviorSubject.createDefault<List<SumAdapterDataItem<LD, RD>>>(emptyList()).toSerialized()
+
+    val dataUpdaterSubject: Subject<List<SumAdapterDataItem<LD, RD>>> =
+        BehaviorSubject.createDefault<List<SumAdapterDataItem<LD, RD>>>(emptyList()).toSerialized()
 
     override val bindData: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding) -> Unit = { position, data, binding ->
         val (leftSize, rightSize) = childrenSize().blockingGet()
@@ -133,17 +138,32 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
 
             }
 
-    override val dataUpdater: Observable<List<SumAdapterDataItem<LD, RD>>> =
-            Observable.merge(leftSpec.dataSubject
-                    .toLeft()
-                    .distinctUntilChanged()
-                    .withLatestFrom(rightSpec.dataSubject.toRight())
-                    .map { it.first + it.second },
-                    rightSpec.dataSubject
-                            .toRight()
-                            .distinctUntilChanged()
-                            .withLatestFrom(leftSpec.dataSubject.toLeft())
-                            .map { it.second + it.first })
+    override val dataUpdater: Observable<List<SumAdapterDataItem<LD, RD>>> = if (syncDataByHand) {
+        dataUpdaterSubject
+    } else {
+        Observable.merge(leftSpec.dataSubject
+            .toLeft()
+            .distinctUntilChanged()
+            .withLatestFrom(rightSpec.dataSubject.toRight())
+            .map { it.first + it.second },
+            rightSpec.dataSubject
+                .toRight()
+                .distinctUntilChanged()
+                .withLatestFrom(leftSpec.dataSubject.toLeft())
+                .map { it.second + it.first })
+    }
+
+    fun syncData(): Single<Unit> {
+        return if (syncDataByHand) {
+            leftSpec.dataSubject.toLeft().firstOrError()
+                .zipWith(rightSpec.dataSubject.toRight().firstOrError())
+                .map { (leftData, rightData) -> leftData + rightData }
+                .doOnSuccess { dataUpdaterSubject.onNext(it) }
+                .map { Unit }
+        } else {
+            Single.just(Unit)
+        }
+    }
 
     private fun Observable<List<LD>>.toLeft() = this.map { data ->
         data.map { item -> SumAdapterDataItem.Left<LD, RD>(left = item) }

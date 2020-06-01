@@ -28,7 +28,7 @@ class TypesAdapterSpec<D>(
         override val differHandler: DifferHandler<D> = DifferHandler(),
         override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
         override val hasStableIds: Boolean = false,
-        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>> = emptyList()
+        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList()
 ) : AdapterSpec<D, ViewDataBinding> {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()

@@ -148,6 +148,21 @@ class MainActivity : AppCompatActivity(), InputOwner {
                     }
                 }
             },
+            itemClicks = listOf { binding, type ->
+                when (binding) {
+                    is LayoutItemType1Binding -> {
+                        binding.root to { _, data ->
+                            Single.fromCallable { type1ItemChangeCall(data.copy(name = "New Name")) }
+                        }
+                    }
+                    is LayoutItemType2Binding -> {
+                        binding.root to { _, _ ->
+                            Single.fromCallable { type1NextPage.onNext(Unit) }
+                        }
+                    }
+                    else -> null
+                }
+            },
             bindDataPayload = { position: Int, data: Product, binding: ViewDataBinding, payloads: List<Any> ->
                 if (payloads.isNotEmpty()) {
                     when (binding) {
@@ -211,7 +226,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = sumAdapter
+        binding.testRv.adapter = typesAdapter
 
     }
 }
