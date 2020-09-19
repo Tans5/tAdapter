@@ -77,6 +77,22 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
                             }.toSingleDefault(Unit)
                         }
                 }?.bindInputLife()
+
+            input?.type1ItemChanged
+                ?.withLatestFrom(bindOutputState().map { it.type1Products.second })
+                ?.flatMapSingle { (newItem, oldList) ->
+                    val newList = oldList.map { item ->
+                        if (item.id == newItem.id) {
+                            newItem
+                        } else {
+                            item
+                        }
+                    }
+                    updateState { state ->
+                        state.copy(type1Products = state.type1Products.copy(second = newList))
+                    }.toSingleDefault(Unit)
+                }
+                ?.bindInputLife()
         }
     }
 
@@ -138,6 +154,7 @@ data class MainOutputState(
 data class MainInput(
     val type1ProductsNext: Observable<Unit>,
     val type1Remove: Observable<Product>,
+    val type1ItemChanged: Observable<Product>,
     val type2ProductsNext: Observable<Unit>,
     val type3ProductsNext: Observable<Unit>
 )

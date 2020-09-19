@@ -1,15 +1,21 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.Output
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
+import java.util.concurrent.TimeUnit
 
 /**
  *
@@ -33,20 +39,46 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override val outputSubject: Subject<PagingWithFootViewState> =
-        Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.InitLoading else PagingWithFootViewState.LoadingMore)
+        Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading)
+
+    val lastItemShowSubject: Subject<Unit> = PublishSubject.create<Unit>().toSerialized()
+
+    val recyclerViewScrollListener = object : RecyclerView.OnScrollListener() {
+
+        var isLastItemVisible = false
+
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val firstVisibleItem = layoutManager.findFirstVisibleItemPosition()
+            val visibleItemCount = layoutManager.childCount
+            val totalItemCount: Int = layoutManager.itemCount
+            isLastItemVisible = firstVisibleItem + visibleItemCount == totalItemCount && dy > 0
+        }
+
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            if (newState == RecyclerView.SCROLL_STATE_IDLE && isLastItemVisible) {
+                lastItemShowSubject.onNext(Unit)
+            }
+        }
+
+    }
 
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
         bindData = { _, _, _ -> Unit },
         dataUpdater = bindOutputState()
+            .delay(500, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
             .distinctUntilChanged()
             .map { state ->
-            if (state is PagingWithFootViewState.LoadingMore) {
-                listOf(state)
-            } else {
-                emptyList()
-            }
-        })
+                if (state is PagingWithFootViewState.LoadingMore) {
+                    listOf(state)
+                } else {
+                    emptyList()
+                }
+            })
 
     val errorAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.Error, EBinding>(
         layoutId = errorLayoutId,
@@ -54,16 +86,19 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
             bindDataError(
                 position,
                 errorState.e,
-                binding)
+                binding
+            )
         },
         dataUpdater = bindOutputState().distinctUntilChanged()
+            .delay(500, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread())
             .map { state ->
-            if (state is PagingWithFootViewState.Error) {
-                listOf(state)
-            } else {
-                emptyList()
+                if (state is PagingWithFootViewState.Error) {
+                    listOf(state)
+                } else {
+                    emptyList()
+                }
             }
-        }
     )
 
     val combineAdapterSpec = dataAdapterSpec + loadingAdapterSpec + errorAdapterSpec
@@ -76,35 +111,22 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
         binding: ViewDataBinding
     ) -> Unit = { position, item, binding ->
-        if (item is SumAdapterDataItem.Left) {
-            if (item.left is SumAdapterDataItem.Left) {
-                isLastData(item.left.left)
-                    .flatMap { isLastData ->
-                        if (isLastData) {
-                            bindOutputState()
-                                .firstOrError()
-                                .map { state ->
-                                    if (state is PagingWithFootViewState.LoadingMore ||
-                                            state is PagingWithFootViewState.InitLoading) {
-                                        loadNextPage()
-                                    }
-                                    Unit
-                                }
-                        } else {
-                            Single.just(Unit)
-                        }
-                    }
-                    .bindLife()
-            }
-        }
         combineAdapterSpec.bindData(position, item, binding)
     }
 
+    override val bindDataPayload: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean =
+        combineAdapterSpec.bindDataPayload
+
     override val dataSubject: Subject<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-            PagingWithFootViewState.Error>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-            PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
+            PagingWithFootViewState.Error>>> =
+        BehaviorSubject.createDefault<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
+                PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
 
     override val differHandler = combineAdapterSpec.differHandler
+
+    override val itemId: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Long = combineAdapterSpec.itemId
+
+    override val hasStableIds: Boolean = combineAdapterSpec.hasStableIds
 
     override fun itemType(
         position: Int,
@@ -116,33 +138,34 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     override fun createBinding(context: Context, parent: ViewGroup, viewType: Int)
             : ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
 
-    fun isLastData(item: D): Single<Boolean> = dataAdapterSpec.dataSubject
-        .firstOrError()
-        .map { sumItem ->
-            item == sumItem[sumItem.lastIndex]
-        }
-
-    fun error(e: Throwable): Completable = updateState { PagingWithFootViewState.Error(e) }
-
-    fun loadingMore(): Completable = updateState { PagingWithFootViewState.LoadingMore }
-
-    fun finish(): Completable = updateState { PagingWithFootViewState.Finish }
-
-    override fun adapterAttachToRecyclerView() {
-        super.adapterAttachToRecyclerView()
+    override fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterAttachToRecyclerView(recyclerView)
+        combineAdapterSpec.adapterAttachToRecyclerView(recyclerView)
+        recyclerView.addOnScrollListener(recyclerViewScrollListener)
         loadingStateUpdater.distinctUntilChanged()
             .flatMapCompletable { newState ->
                 updateState { newState }
             }
             .bindLife()
 
-        combineAdapterSpec.adapterAttachToRecyclerView()
+        lastItemShowSubject
+            .withLatestFrom(bindOutputState())
+            .map { it.second }
+            .filter { it == PagingWithFootViewState.LoadingMore }
+            .doOnNext {
+                loadNextPage()
+            }
+            .bindLife()
     }
 
-    override fun adapterDetachToRecyclerView() {
-        super.adapterDetachToRecyclerView()
-        combineAdapterSpec.adapterDetachToRecyclerView()
+    override fun adapterDetachToRecyclerView(recyclerView: RecyclerView) {
+        super.adapterDetachToRecyclerView(recyclerView)
+        combineAdapterSpec.adapterDetachToRecyclerView(recyclerView)
+        recyclerView.removeOnScrollListener(recyclerViewScrollListener)
     }
+
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Single<Unit>>?> =
+        combineAdapterSpec.itemClicks
 
 }
 
@@ -170,4 +193,5 @@ fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewD
         loadingStateUpdater = loadingStateUpdater,
         bindDataError = bindDataError,
         loadNextPage = loadNextPage,
-        initShowLoading = initShowLoading)
+        initShowLoading = initShowLoading
+    )
