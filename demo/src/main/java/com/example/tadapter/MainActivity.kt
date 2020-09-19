@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import com.example.tadapter.core.InputOwner
 import com.example.tadapter.databinding.*
 import com.example.tadapter.model.Product
@@ -27,11 +27,12 @@ class MainActivity : AppCompatActivity(), InputOwner {
 
     val type2NextPage: Subject<Unit> = PublishSubject.create<Unit>()
 
-    val type3NextPage: Subject<Unit> = PublishSubject.create<Unit>()
+    val type3NextPage: Subject<Unit> = PublishSubject.create()
 
     val viewModel: MainViewModel by lazy {
-        ViewModelProvider(this).get(MainViewModel::class.java)
+        ViewModelProviders.of(this).get(MainViewModel::class.java)
     }
+
     lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -226,7 +227,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = typesAdapter
+        binding.testRv.adapter = sumAdapter
 
     }
 }

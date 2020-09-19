@@ -26,7 +26,7 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(
             layoutId = emptyLayout,
-            dataUpdater = dataAdapterSpec.dataSubject
+            dataUpdater = dataAdapterSpec.dataUpdater
                     .skip(if (initShowEmpty) 0 else 1)
                     .map { dataList ->
                         if (dataList.isEmpty()) {
@@ -41,11 +41,9 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Unit>) -> Single<Unit>>?> = combineAdapterSpec.itemClicks
 
-    override val dataSubject: Subject<List<SumAdapterDataItem<D, Unit>>> = BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Unit>>>(emptyList()).toSerialized()
-
     override val differHandler: DifferHandler<SumAdapterDataItem<D, Unit>> = combineAdapterSpec.differHandler
 
-    override val dataUpdater: Observable<List<SumAdapterDataItem<D, Unit>>> = combineAdapterSpec.dataSubject
+    override val dataUpdater: Observable<List<SumAdapterDataItem<D, Unit>>> = combineAdapterSpec.dataUpdater
 
     override val bindData: (position: Int, data: SumAdapterDataItem<D, Unit>, binding: ViewDataBinding) -> Unit = combineAdapterSpec.bindData
 
@@ -64,8 +62,6 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
             parent: ViewGroup,
             viewType: Int
     ): ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
-
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
         super.adapterAttachToRecyclerView(recyclerView)

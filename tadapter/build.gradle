@@ -62,5 +62,10 @@ dependencies {
     // RxBinding
     implementation deps.rxbinding.runtime
 
+    // Coroutines
+    implementation deps.coroutines.runtime
+    implementation deps.coroutines.android
+    implementation deps.coroutines.rx
+
 
 }

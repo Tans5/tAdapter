@@ -1,12 +1,16 @@
 package com.tans.tadapter.spec
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
 import io.reactivex.Observable
+import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 
 /**
@@ -22,27 +26,24 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
 ) : BaseAdapterSpec<SumAdapterDataItem<D, Throwable>, ViewDataBinding>() {
 
+    val othersDataSubject = PublishSubject.create<List<D>>().toSerialized()
+
     val errorDataSpec: SimpleAdapterSpec<Throwable, EBinding> = SimpleAdapterSpec(
             layoutId = errorLayout,
             dataUpdater = errorChecker.distinctUntilChanged().map {
-                dataAdapterSpec.dataSubject.onNext(
-                        emptyList()
-                ); listOf(it)
+                othersDataSubject.onNext(emptyList())
+                listOf(it)
             },
             bindData = bindDataError
     )
 
-    val combineAdapterSpec = dataAdapterSpec + errorDataSpec
-
-    override val dataSubject: Subject<List<SumAdapterDataItem<D, Throwable>>> =
-            BehaviorSubject.createDefault<List<SumAdapterDataItem<D, Throwable>>>(emptyList())
-                    .toSerialized()
+    val combineAdapterSpec = DataProxyAdapterSpec(dataAdapterSpec, othersDataSubject) + errorDataSpec
 
     override val differHandler: DifferHandler<SumAdapterDataItem<D, Throwable>> =
             combineAdapterSpec.differHandler
 
     override val dataUpdater: Observable<List<SumAdapterDataItem<D, Throwable>>> =
-        combineAdapterSpec.dataSubject
+        combineAdapterSpec.dataUpdater
 
     override val bindData: (position: Int, data: SumAdapterDataItem<D, Throwable>, binding: ViewDataBinding) -> Unit =
             combineAdapterSpec.bindData
@@ -64,8 +65,6 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
             parent: ViewGroup,
             viewType: Int
     ): ViewDataBinding = combineAdapterSpec.createBinding(context, parent, viewType)
-
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 
     override fun adapterAttachToRecyclerView(recyclerView: RecyclerView) {
         super.adapterAttachToRecyclerView(recyclerView)

@@ -36,10 +36,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 ) : BaseAdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>(),
     Output<PagingWithFootViewState> {
 
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
-
-    override val outputSubject: Subject<PagingWithFootViewState> =
-        Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading)
+    override val outputSubject: Subject<PagingWithFootViewState> = Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading)
 
     val lastItemShowSubject: Subject<Unit> = PublishSubject.create<Unit>().toSerialized()
 
@@ -104,7 +101,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val combineAdapterSpec = dataAdapterSpec + loadingAdapterSpec + errorAdapterSpec
 
     override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> =
-        combineAdapterSpec.dataSubject
+        combineAdapterSpec.dataUpdater
 
     override val bindData: (
         position: Int,
@@ -116,11 +113,6 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     override val bindDataPayload: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean =
         combineAdapterSpec.bindDataPayload
-
-    override val dataSubject: Subject<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-            PagingWithFootViewState.Error>>> =
-        BehaviorSubject.createDefault<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>,
-                PagingWithFootViewState.Error>>>(emptyList()).toSerialized()
 
     override val differHandler = combineAdapterSpec.differHandler
 
