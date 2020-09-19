@@ -135,14 +135,10 @@ class MainActivity : AppCompatActivity(), InputOwner {
                 when (binding) {
                     is LayoutItemType1Binding -> {
                         binding.data = data
-                        binding.root.setOnClickListener {
-                            type1ItemChangeCall(data.copy(name = "New Name"))
-                        }
                     }
 
                     is LayoutItemType2Binding -> {
                         binding.data = data
-                        binding.root.setOnClickListener { type1NextPage.onNext(Unit) }
                     }
                     else -> {
 
@@ -227,7 +223,7 @@ class MainActivity : AppCompatActivity(), InputOwner {
             type1RemoveCall(item)
         }
 
-        binding.testRv.adapter = sumAdapter
+        binding.testRv.adapter = typesAdapter
 
     }
 }

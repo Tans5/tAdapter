@@ -9,6 +9,7 @@ import com.jakewharton.rxbinding3.view.clicks
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -83,6 +84,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         adapterSpec.adapterAttachToRecyclerView(recyclerView)
         adapterSpec.dataUpdater
             .distinctUntilChanged()
+            .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { submitList(it) }
             .bindLife()
     }

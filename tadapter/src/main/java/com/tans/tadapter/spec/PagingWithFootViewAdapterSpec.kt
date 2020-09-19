@@ -66,8 +66,6 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         layoutId = loadingLayoutId,
         bindData = { _, _, _ -> Unit },
         dataUpdater = bindOutputState()
-            .delay(500, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
             .distinctUntilChanged()
             .map { state ->
                 if (state is PagingWithFootViewState.LoadingMore) {
@@ -87,8 +85,6 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
             )
         },
         dataUpdater = bindOutputState().distinctUntilChanged()
-            .delay(500, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
             .map { state ->
                 if (state is PagingWithFootViewState.Error) {
                     listOf(state)
@@ -100,8 +96,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     val combineAdapterSpec = dataAdapterSpec + loadingAdapterSpec + errorAdapterSpec
 
-    override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> =
-        combineAdapterSpec.dataUpdater
+    override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> = combineAdapterSpec.dataUpdater
 
     override val bindData: (
         position: Int,
