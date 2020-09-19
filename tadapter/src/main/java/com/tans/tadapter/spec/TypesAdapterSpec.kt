@@ -22,8 +22,7 @@ class TypesAdapterSpec<D>(
     override val bindData: (Int, D, ViewDataBinding) -> Unit,
     override val dataUpdater: Observable<List<D>>,
     override val differHandler: DifferHandler<D> = DifferHandler()
-) :
-    AdapterSpec<D, ViewDataBinding> {
+) : BaseAdapterSpec<D, ViewDataBinding>() {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
 

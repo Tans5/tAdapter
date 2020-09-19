@@ -16,7 +16,7 @@ import java.lang.RuntimeException
 class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding>(
     val leftSpec: AdapterSpec<LD, LBinding>,
     val rightSpec: AdapterSpec<RD, RBinding>
-) : AdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding> {
+) : BaseAdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding>() {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 

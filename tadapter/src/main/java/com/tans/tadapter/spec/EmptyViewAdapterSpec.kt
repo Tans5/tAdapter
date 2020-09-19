@@ -18,7 +18,7 @@ import io.reactivex.subjects.Subject
 class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
     val emptyLayout: Int,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
-    val initShowEmpty: Boolean = false) : AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> {
+    val initShowEmpty: Boolean = false) : BaseAdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding>() {
 
 
     val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(

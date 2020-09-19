@@ -8,13 +8,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
 import io.reactivex.disposables.CompositeDisposable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     val adapterSpec: AdapterSpec<D, Binding>
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler),
-    BindLife {
-
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
+    BindLife by BindLife(), CoroutineScope by CoroutineScope(Dispatchers.Main) {
 
     override fun getItemViewType(position: Int): Int {
         return adapterSpec.itemType(position, getItem(position))
@@ -53,6 +54,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         super.onDetachedFromRecyclerView(recyclerView)
         adapterSpec.adapterDetachToRecyclerView()
         lifeCompositeDisposable.clear()
+        cancel()
     }
 }
 

@@ -27,7 +27,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit },
     val loadNextPage: () -> Unit = { },
     val initShowLoading: Boolean = false
-) : AdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>,
+) : BaseAdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>(),
     Output<PagingWithFootViewState> {
 
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()

@@ -10,10 +10,11 @@ import com.tans.tadapter.adapter.SimpleAdapter
 import com.tans.tadapter.adapter.SwipeToRemoveAdapter
 import com.tans.tadapter.core.BindLife
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.Subject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 
-interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
+interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife, CoroutineScope {
 
     val dataSubject: Subject<List<D>>
 
@@ -40,6 +41,7 @@ interface AdapterSpec<D, Binding : ViewDataBinding> : BindLife {
 
     fun adapterDetachToRecyclerView() {
         lifeCompositeDisposable.clear()
+        cancel()
     }
 
 }

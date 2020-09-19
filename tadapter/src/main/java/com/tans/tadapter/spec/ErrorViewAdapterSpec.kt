@@ -20,7 +20,7 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
     val errorChecker: Observable<Throwable>,
     val bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
-) : AdapterSpec<SumAdapterDataItem<D, Throwable>, ViewDataBinding> {
+) : BaseAdapterSpec<SumAdapterDataItem<D, Throwable>, ViewDataBinding>() {
 
     val errorDataSpec: SimpleAdapterSpec<Throwable, EBinding> = SimpleAdapterSpec(
         layoutId = errorLayout,

@@ -48,3 +48,7 @@ interface BindLife {
     }
 
 }
+
+fun BindLife() = object : BindLife {
+    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
+}

@@ -16,7 +16,7 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     override val bindData: ((Int, D, Binding) -> Unit) = { _, _, _ -> Unit},
     override val dataUpdater: Observable<List<D>>,
     override val differHandler: DifferHandler<D> = DifferHandler()
-) : AdapterSpec<D, Binding> {
+) : BaseAdapterSpec<D, Binding>() {
 
     override val dataSubject: Subject<List<D>> = BehaviorSubject.createDefault<List<D>>(emptyList()).toSerialized()
 
