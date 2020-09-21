@@ -23,7 +23,7 @@ class MainViewModel : BaseViewModel<MainOutputState, MainInput>(defaultState = M
             input?.type1ProductsNext
                 ?.withLatestFrom(bindOutputState().map { it.type1Products.first })
                 ?.filter { !it.second.finished }
-                ?.flatMapSingle { (_, params) ->
+                ?.switchMapSingle { (_, params) ->
                     productService.getProducts(page = params.page)
                         .switchThread()
                         .flatMap { products ->

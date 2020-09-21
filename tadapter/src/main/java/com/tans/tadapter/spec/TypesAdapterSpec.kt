@@ -29,11 +29,7 @@ class TypesAdapterSpec<D>(
         override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
         override val hasStableIds: Boolean = false,
         override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList()
-) : AdapterSpec<D, ViewDataBinding> {
-
-    override val dataSubject: Subject<List<D>> = BehaviorSubject.create<List<D>>().toSerialized()
-
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
+) : BaseAdapterSpec<D, ViewDataBinding>() {
 
     override fun itemType(position: Int, item: D): Int {
         val layoutId = typeHandler(item)

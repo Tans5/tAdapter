@@ -9,14 +9,15 @@ import com.jakewharton.rxbinding3.view.clicks
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 
-abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: AdapterSpec<D, Binding>) : ListAdapter<D, BaseViewHolder<Binding>>(
-    adapterSpec.differHandler
-),
-    BindLife {
-
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
+abstract class BaseAdapter<D, Binding : ViewDataBinding>(
+    val adapterSpec: AdapterSpec<D, Binding>
+) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife by BindLife(),
+    CoroutineScope by CoroutineScope(Dispatchers.Main) {
 
     init {
         this.setHasStableIds(adapterSpec.hasStableIds)
@@ -43,7 +44,12 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: Adapte
                 if (viewAndClickHandle != null) {
                     val (view, clickHandle) = viewAndClickHandle
                     view.clicks()
-                        .flatMapSingle { clickHandle(holder.adapterPosition, getItem(holder.adapterPosition)) }
+                        .flatMapSingle {
+                            clickHandle(
+                                holder.adapterPosition,
+                                getItem(holder.adapterPosition)
+                            )
+                        }
                 } else {
                     Observable.empty<Unit>()
                 }
@@ -76,8 +82,9 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: Adapte
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         adapterSpec.adapterAttachToRecyclerView(recyclerView)
-        adapterSpec.dataSubject
+        adapterSpec.dataUpdater
             .distinctUntilChanged()
+            .observeOn(AndroidSchedulers.mainThread())
             .doOnNext { submitList(it) }
             .bindLife()
     }
@@ -86,6 +93,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(val adapterSpec: Adapte
         super.onDetachedFromRecyclerView(recyclerView)
         adapterSpec.adapterDetachToRecyclerView(recyclerView)
         lifeCompositeDisposable.clear()
+        cancel()
     }
 }
 
