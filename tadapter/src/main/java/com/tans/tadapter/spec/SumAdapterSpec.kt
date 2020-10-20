@@ -6,55 +6,39 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Maybe
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.rxkotlin.zipWith
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
 import java.lang.RuntimeException
 
 class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding>(
         val leftSpec: AdapterSpec<LD, LBinding>,
-        val rightSpec: AdapterSpec<RD, RBinding>,
-        val syncDataByHand: Boolean = false
-) : AdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding> {
+        val rightSpec: AdapterSpec<RD, RBinding>
+) : BaseAdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding>() {
 
-    override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
-
-    override val dataSubject: Subject<List<SumAdapterDataItem<LD, RD>>> =
-            BehaviorSubject.createDefault<List<SumAdapterDataItem<LD, RD>>>(emptyList()).toSerialized()
-
-    val dataUpdaterSubject: Subject<List<SumAdapterDataItem<LD, RD>>> =
-        BehaviorSubject.createDefault<List<SumAdapterDataItem<LD, RD>>>(emptyList()).toSerialized()
-
-    override val bindData: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding) -> Unit = { position, data, binding ->
-        val (leftSize, rightSize) = childrenSize().blockingGet()
+    override val bindData: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding) -> Unit = { _, data, binding ->
         when (data) {
             is SumAdapterDataItem.Left -> {
                 val lBinding: LBinding? = binding as? LBinding
                 if (lBinding != null) {
-                    leftSpec.bindData(position, data.left, lBinding)
+                    leftSpec.bindData(data.position, data.left, lBinding)
                 }
             }
             is SumAdapterDataItem.Right -> {
                 val rBinding: RBinding? = (binding as? RBinding)
                 if (rBinding != null) {
-                    rightSpec.bindData(position - leftSize, data.right, rBinding)
+                    rightSpec.bindData(data.position, data.right, rBinding)
                 }
             }
         }
     }
 
-    override val bindDataPayload: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { position, data, binding, payloads ->
-        val (leftSize, rightSize) = childrenSize().blockingGet()
+    override val bindDataPayload: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, data, binding, payloads ->
         when (data) {
             is SumAdapterDataItem.Left -> {
                 val lBinding: LBinding? = (binding as? LBinding)
                 if (lBinding != null) {
-                    leftSpec.bindDataPayload(position, data.left, lBinding, payloads)
+                    leftSpec.bindDataPayload(data.position, data.left, lBinding, payloads)
                 } else {
                     false
                 }
@@ -62,7 +46,7 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
             is SumAdapterDataItem.Right -> {
                 val rBinding: RBinding? = (binding as? RBinding)
                 if (rBinding != null) {
-                    rightSpec.bindDataPayload(position - leftSize, data.right, rBinding, payloads)
+                    rightSpec.bindDataPayload(data.position, data.right, rBinding, payloads)
                 } else {
                     false
                 }
@@ -72,14 +56,13 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
 
     override val hasStableIds: Boolean = leftSpec.hasStableIds || rightSpec.hasStableIds
 
-    override val itemId: (position: Int, data: SumAdapterDataItem<LD, RD>) -> Long = { position, data ->
-        val (leftSize, _) = childrenSize().blockingGet()
+    override val itemId: (position: Int, data: SumAdapterDataItem<LD, RD>) -> Long = { _, data ->
         when (data) {
             is SumAdapterDataItem.Left -> {
-                leftSpec.itemId(position, data.left)
+                leftSpec.itemId(data.position, data.left)
             }
             is SumAdapterDataItem.Right -> {
-                rightSpec.itemId(position - leftSize, data.right)
+                rightSpec.itemId(data.position, data.right)
             }
         }
     }
@@ -138,82 +121,37 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
 
             }
 
-    override val dataUpdater: Observable<List<SumAdapterDataItem<LD, RD>>> = if (syncDataByHand) {
-        dataUpdaterSubject
-    } else {
-        Observable.merge(leftSpec.dataSubject
+    override val dataUpdater: Observable<List<SumAdapterDataItem<LD, RD>>> =
+        Observable.merge(leftSpec.dataUpdater
             .toLeft()
             .distinctUntilChanged()
-            .withLatestFrom(rightSpec.dataSubject.toRight())
+            .withLatestFrom(rightSpec.dataUpdater.toRight())
             .map { it.first + it.second },
-            rightSpec.dataSubject
+            rightSpec.dataUpdater
                 .toRight()
                 .distinctUntilChanged()
-                .withLatestFrom(leftSpec.dataSubject.toLeft())
+                .withLatestFrom(leftSpec.dataUpdater.toLeft())
                 .map { it.second + it.first })
-    }
-
-    fun syncData(): Single<Unit> {
-        return if (syncDataByHand) {
-            leftSpec.dataSubject.toLeft().firstOrError()
-                .zipWith(rightSpec.dataSubject.toRight().firstOrError())
-                .map { (leftData, rightData) -> leftData + rightData }
-                .doOnSuccess { dataUpdaterSubject.onNext(it) }
-                .map { Unit }
-        } else {
-            Single.just(Unit)
-        }
-    }
 
     private fun Observable<List<LD>>.toLeft() = this.map { data ->
-        data.map { item -> SumAdapterDataItem.Left<LD, RD>(left = item) }
+        val size = data.size
+        data.withIndex().map { (position, item) ->
+            SumAdapterDataItem.Left<LD, RD>(left = item, length = size, position = position)
+        }
     }
 
     private fun Observable<List<RD>>.toRight() = this.map { data ->
-        data.map { item -> SumAdapterDataItem.Right<LD, RD>(right = item) }
+        val size = data.size
+        data.withIndex().map { (position, item) ->
+            SumAdapterDataItem.Right<LD, RD>(right = item, length = size, position = position)
+        }
     }
 
-    private fun isLeft(position: Int): Maybe<Boolean> = childrenSize()
-            .flatMapMaybe { (leftItemSize, rightItemSize) ->
-                when (position) {
-                    in 0 until leftItemSize -> Maybe.just(true)
-                    in leftItemSize until leftItemSize + rightItemSize -> Maybe.just(false)
-                    else -> Maybe.empty<Boolean>()
-                }
-            }
-
-    private fun childrenSize(): Single<Pair<Int, Int>> = dataSubject.firstOrError()
-            .map {
-                val leftItemSize = it.sumBy { item ->
-                    if (item is SumAdapterDataItem.Left) {
-                        1
-                    } else {
-                        0
-                    }
-                }
-                val rightItemSize = it.sumBy { item ->
-                    if (item is SumAdapterDataItem.Right) {
-                        1
-                    } else {
-                        0
-                    }
-                }
-                leftItemSize to rightItemSize
-            }
-
     override fun itemType(position: Int, item: SumAdapterDataItem<LD, RD>): Int {
-        val (leftSize, rightSize) = childrenSize().blockingGet()
-
-        return when {
-            item is SumAdapterDataItem.Left && position < leftSize -> {
-                leftSpec.itemType(position, item.left)
-            }
-            item is SumAdapterDataItem.Right && position in leftSize until leftSize + rightSize -> {
-                rightSpec.itemType(position - leftSize, item.right)
-            }
-            else -> 0
+        return when (item) {
+             is SumAdapterDataItem.Left -> leftSpec.itemType(item.position, item.left)
+             is SumAdapterDataItem.Right -> rightSpec.itemType(item.position, item.right)
         }
-
     }
 
     override fun canHandleTypes(): List<Int> =
@@ -224,16 +162,8 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
             parent: ViewGroup,
             viewType: Int
     ): ViewDataBinding = when {
-        leftSpec.canHandleTypes().contains(viewType) -> leftSpec.createBinding(
-                context,
-                parent,
-                viewType
-        )
-        rightSpec.canHandleTypes().contains(viewType) -> rightSpec.createBinding(
-                context,
-                parent,
-                viewType
-        )
+        leftSpec.canHandleTypes().contains(viewType) -> leftSpec.createBinding(context, parent, viewType)
+        rightSpec.canHandleTypes().contains(viewType) -> rightSpec.createBinding(context, parent, viewType)
         else -> throw RuntimeException("Can't deal viewType: $viewType")
     }
 
@@ -249,40 +179,53 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         rightSpec.adapterDetachToRecyclerView(recyclerView)
     }
 
-    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Single<Unit>>?>
-            = leftSpec.itemClicks.map { leftClick ->
-        { binding: ViewDataBinding, type: Int ->
-            if (leftSpec.canHandleTypes().contains(type)) {
-                val viewAndHandle: Pair<View, (Int, LD) -> Single<Unit>>? = leftClick.invoke(binding as LBinding, type)
-                if (viewAndHandle == null) {
-                    null
-                } else {
-                    val (view: View, clickHandle: (Int, LD) -> Single<Unit>) = viewAndHandle
-                    view to { position: Int, data: SumAdapterDataItem<LD, RD> ->
-                        clickHandle(position, data.left!!)
+    override val itemClicks: List<ItemClick<ViewDataBinding, SumAdapterDataItem<LD, RD>>> =
+        leftSpec.itemClicks.map { leftClick ->
+            object : ItemClick<ViewDataBinding, SumAdapterDataItem<LD, RD>> {
+                override fun invoke(
+                    binding: ViewDataBinding,
+                    type: Int
+                ): Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Single<Unit>>? {
+                    return if (leftSpec.canHandleTypes().contains(type)) {
+                        val viewAndHandle: Pair<View, (Int, LD) -> Single<Unit>>? =
+                            leftClick.invoke(binding as LBinding, type)
+                        if (viewAndHandle == null) {
+                            null
+                        } else {
+                            val (view: View, clickHandle: (Int, LD) -> Single<Unit>) = viewAndHandle
+                            view to { position: Int, data: SumAdapterDataItem<LD, RD> ->
+                                clickHandle(position, data.left!!)
+                            }
+                        }
+                    } else {
+                        null
                     }
                 }
-            } else {
-                null
+
             }
-        }
-    } + rightSpec.itemClicks.map { rightClick ->
-        { binding: ViewDataBinding, type: Int ->
-            if (rightSpec.canHandleTypes().contains(type)) {
-                val clickAndHandle = rightClick(binding as RBinding, type)
-                if (clickAndHandle == null) {
-                    null
-                } else {
-                    val (view, clickHandle) = clickAndHandle
-                    view to { position: Int, data: SumAdapterDataItem<LD, RD> ->
-                        clickHandle(position - childrenSize().blockingGet().first, data.right!!)
+        } + rightSpec.itemClicks.map { rightClick ->
+            object : ItemClick<ViewDataBinding, SumAdapterDataItem<LD, RD>> {
+                override fun invoke(
+                    binding: ViewDataBinding,
+                    type: Int
+                ): Pair<View, (position: Int, data: SumAdapterDataItem<LD, RD>) -> Single<Unit>>? {
+                    return if (rightSpec.canHandleTypes().contains(type)) {
+                        val clickAndHandle = rightClick(binding as RBinding, type)
+                        if (clickAndHandle == null) {
+                            null
+                        } else {
+                            val (view, clickHandle) = clickAndHandle
+                            view to { _: Int, data: SumAdapterDataItem<LD, RD> ->
+                                clickHandle(data.position, data.right!!)
+                            }
+                        }
+                    } else {
+                        null
                     }
                 }
-            } else {
-                null
+
             }
         }
-    }
 
 
 }
@@ -291,12 +234,24 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
 sealed class SumAdapterDataItem<Left, Right> {
     abstract val left: Left?
     abstract val right: Right?
+    abstract val length: Int
+    abstract val position: Int
 
-    class Left<L, R>(override val left: L, override val right: R? = null) :
-            SumAdapterDataItem<L, R>()
+    class Left<L, R>(
+        override val left: L,
+        override val length: Int,
+        override val position: Int
+    ) : SumAdapterDataItem<L, R>() {
+        override val right: R? = null
+    }
 
-    class Right<L, R>(override val left: L? = null, override val right: R) :
-            SumAdapterDataItem<L, R>()
+    class Right<L, R>(
+        override val right: R,
+        override val position: Int,
+        override val length: Int
+    ) : SumAdapterDataItem<L, R>() {
+        override val left: L? = null
+    }
 }
 
 operator fun <LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding> AdapterSpec<LD, LBinding>.plus(
