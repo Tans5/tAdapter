@@ -125,11 +125,17 @@ class MarginDividerItemDecoration(
                 return this
             }
 
+            /**
+             * @param marginStart Unit is px
+             */
             fun marginStart(marginStart: Int): Builder {
                 this.marginStart = marginStart
                 return this
             }
 
+            /**
+             * @param marginEnd Unit is px
+             */
             fun marginEnd(marginEnd: Int): Builder {
                 this.marginEnd = marginEnd
                 return this
