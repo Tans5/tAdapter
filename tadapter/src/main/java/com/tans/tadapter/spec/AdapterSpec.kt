@@ -51,8 +51,8 @@ interface AdapterSpec<D, Binding : ViewDataBinding> {
 
 }
 
-fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
-        : BaseAdapter<D, Binding> = SimpleAdapter(this)
+fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter(onChangeCommit: (list: List<D>) -> Unit = {})
+        : BaseAdapter<D, Binding> = SimpleAdapter(this, onChangeCommit)
 
 fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
     deleteIcon: Drawable? = null,
