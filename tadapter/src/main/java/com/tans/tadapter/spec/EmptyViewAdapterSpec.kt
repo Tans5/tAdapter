@@ -47,6 +47,8 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
     override val bindData: (position: Int, data: SumAdapterDataItem<D, Unit>, binding: ViewDataBinding) -> Unit = combineAdapterSpec.bindData
 
+    override val swipeRemove: (position: Int, data: SumAdapterDataItem<D, Unit>) -> Unit = combineAdapterSpec.swipeRemove
+
     override val bindDataPayload: (position: Int, data: SumAdapterDataItem<D, Unit>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = combineAdapterSpec.bindDataPayload
 
     override val hasStableIds: Boolean = dataAdapterSpec.hasStableIds

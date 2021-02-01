@@ -15,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
-    val adapterSpec: AdapterSpec<D, Binding>
+    protected val adapterSpec: AdapterSpec<D, Binding>
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife by BindLife(),
     CoroutineScope by CoroutineScope(Dispatchers.Main) {
 

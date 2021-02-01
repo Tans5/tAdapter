@@ -35,6 +35,8 @@ interface AdapterSpec<D, Binding : ViewDataBinding> {
 
     val itemClicks: List<ItemClick<Binding, D>>
 
+    val swipeRemove: (position: Int, data: D) -> Unit
+
     fun itemType(position: Int, item: D): Int
 
     fun canHandleTypes(): List<Int>
@@ -54,13 +56,10 @@ fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
 
 fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
     deleteIcon: Drawable? = null,
-    background: Drawable,
-    removeCallback: (position: Int, item: D) -> Unit
-)
-        : BaseAdapter<D, Binding> = SwipeToRemoveAdapter(
+    background: Drawable
+): BaseAdapter<D, Binding> = SwipeToRemoveAdapter(
         adapterSpec = this,
         deleteIcon = deleteIcon,
-        background = background,
-        removeCallBack = removeCallback
+        background = background
 )
 

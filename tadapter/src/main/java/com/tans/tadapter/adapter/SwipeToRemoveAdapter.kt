@@ -18,8 +18,7 @@ import com.tans.tadapter.spec.AdapterSpec
 class SwipeToRemoveAdapter<D, Binding : ViewDataBinding>(
     adapterSpec: AdapterSpec<D, Binding>,
     val deleteIcon: Drawable? = null,
-    val background: Drawable,
-    val removeCallBack: (position: Int, D) -> Unit
+    val background: Drawable
 ) : BaseAdapter<D, Binding>(adapterSpec) {
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
@@ -28,9 +27,7 @@ class SwipeToRemoveAdapter<D, Binding : ViewDataBinding>(
             SwipeToRemoveCallBack(
                 deleteIcon = deleteIcon,
                 background = background,
-                removeCallBack = { position ->
-                    removeCallBack(position, getItem(position))
-                }
+                removeCallBack = { position -> adapterSpec.swipeRemove(position, getItem(position)) }
             )
         )
         itemTouchHelper.attachToRecyclerView(recyclerView)

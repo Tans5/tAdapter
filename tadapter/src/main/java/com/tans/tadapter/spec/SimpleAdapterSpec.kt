@@ -25,6 +25,7 @@ class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
     override val hasStableIds: Boolean = false,
     override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
     override val itemClicks: List<(binding: Binding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>> = emptyList(),
+    override val swipeRemove: (position: Int, data: D) -> Unit = { _, _ -> },
     val bindingGetter: BindingGetter<Binding> = { context: Context, parent: ViewGroup, layoutIdL: Int, _ -> DataBindingUtil.inflate(LayoutInflater.from(context), layoutIdL, parent, false) }
 ) : BaseAdapterSpec<D, Binding>() {
 

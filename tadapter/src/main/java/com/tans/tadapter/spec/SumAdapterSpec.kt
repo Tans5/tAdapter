@@ -33,6 +33,17 @@ class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBind
         }
     }
 
+    override val swipeRemove: (position: Int, data: SumAdapterDataItem<LD, RD>) -> Unit = { _, data ->
+        when (data) {
+            is SumAdapterDataItem.Left -> {
+                leftSpec.swipeRemove(data.position, data.left)
+            }
+            is SumAdapterDataItem.Right -> {
+                rightSpec.swipeRemove(data.position, data.right)
+            }
+        }
+    }
+
     override val bindDataPayload: (position: Int, data: SumAdapterDataItem<LD, RD>, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, data, binding, payloads ->
         when (data) {
             is SumAdapterDataItem.Left -> {

@@ -27,6 +27,8 @@ class DataProxyAdapterSpec<D, Binding : ViewDataBinding>(
 
     override val bindDataPayload: (position: Int, data: D, binding: Binding, payloads: List<Any>) -> Boolean = realAdapterSpec.bindDataPayload
 
+    override val swipeRemove: (position: Int, data: D) -> Unit = realAdapterSpec.swipeRemove
+
     override val itemId: (position: Int, data: D) -> Long = realAdapterSpec.itemId
 
     override val hasStableIds: Boolean = realAdapterSpec.hasStableIds

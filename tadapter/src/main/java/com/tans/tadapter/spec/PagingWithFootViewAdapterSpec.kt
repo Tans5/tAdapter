@@ -19,7 +19,7 @@ import io.reactivex.subjects.Subject
  * date: 2019-09-17
  */
 
-class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
+private class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         LBinding : ViewDataBinding,
         EBinding : ViewDataBinding>(
     val loadingLayoutId: Int,
@@ -92,6 +92,8 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
 
     override val dataUpdater: Observable<List<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>>> = combineAdapterSpec.dataUpdater
 
+    override val swipeRemove: (position: Int, data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>) -> Unit = combineAdapterSpec.swipeRemove
+
     override val bindData: (
         position: Int,
         data: SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>,
@@ -158,7 +160,7 @@ sealed class PagingWithFootViewState {
     class Error(val e: Throwable) : PagingWithFootViewState()
 }
 
-fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
+private fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
     loadingLayoutId: Int,
     errorLayoutId: Int,
     loadingStateUpdater: Observable<PagingWithFootViewState>,

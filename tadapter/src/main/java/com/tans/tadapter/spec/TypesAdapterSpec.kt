@@ -19,7 +19,7 @@ import kotlin.RuntimeException
  * date: 2019-09-16
  */
 
-class TypesAdapterSpec<D>(
+private class TypesAdapterSpec<D>(
         val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
         val typeHandler: (D) -> Int,
         override val bindData: (Int, D, ViewDataBinding) -> Unit,
@@ -28,7 +28,8 @@ class TypesAdapterSpec<D>(
         override val differHandler: DifferHandler<D> = DifferHandler(),
         override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
         override val hasStableIds: Boolean = false,
-        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList()
+        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList(),
+        override val swipeRemove: (position: Int, data: D) -> Unit = { _, _ -> }
 ) : BaseAdapterSpec<D, ViewDataBinding>() {
 
     override fun itemType(position: Int, item: D): Int {
