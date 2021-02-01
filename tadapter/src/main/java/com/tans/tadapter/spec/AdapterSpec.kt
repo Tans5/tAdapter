@@ -56,10 +56,12 @@ fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter()
 
 fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
     deleteIcon: Drawable? = null,
-    background: Drawable
+    background: Drawable,
+    onChangeCommit: (list: List<D>) -> Unit
 ): BaseAdapter<D, Binding> = SwipeToRemoveAdapter(
         adapterSpec = this,
         deleteIcon = deleteIcon,
-        background = background
+        background = background,
+        onChangeCommit = onChangeCommit
 )
 

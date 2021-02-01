@@ -19,14 +19,14 @@ class SwipeToRemoveAdapter<D, Binding : ViewDataBinding> : BaseAdapter<D, Bindin
 
     private val callback: ItemTouchHelper.SimpleCallback
 
-    constructor(adapterSpec: AdapterSpec<D, Binding>, deleteIcon: Drawable?, background: Drawable) : super(adapterSpec) {
+    constructor(adapterSpec: AdapterSpec<D, Binding>, deleteIcon: Drawable?, background: Drawable, onChangeCommit: (list: List<D>) -> Unit = {}) : super(adapterSpec, onChangeCommit) {
         this.callback = DefaultSwipeRemoveCallBack(
             deleteIcon = deleteIcon,
             background = background
         )
     }
 
-    constructor(adapterSpec: AdapterSpec<D, Binding>, callback: ItemTouchHelper.SimpleCallback) : super(adapterSpec) {
+    constructor(adapterSpec: AdapterSpec<D, Binding>, callback: ItemTouchHelper.SimpleCallback, onChangeCommit: (list: List<D>) -> Unit = {}) : super(adapterSpec, onChangeCommit) {
         this.callback = callback
     }
 

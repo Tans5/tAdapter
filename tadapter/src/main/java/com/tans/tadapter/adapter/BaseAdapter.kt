@@ -15,7 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 
 abstract class BaseAdapter<D, Binding : ViewDataBinding>(
-    protected val adapterSpec: AdapterSpec<D, Binding>
+    protected val adapterSpec: AdapterSpec<D, Binding>,
+    val onChangeCommit: (list: List<D>) -> Unit = {},
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife by BindLife(),
     CoroutineScope by CoroutineScope(Dispatchers.Main) {
 
@@ -85,7 +86,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
         adapterSpec.dataUpdater
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
-            .doOnNext { submitList(it) }
+            .doOnNext { submitList(it) { onChangeCommit(it) } }
             .bindLife()
     }
 
