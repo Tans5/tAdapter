@@ -15,31 +15,47 @@ import com.tans.tadapter.spec.AdapterSpec
  * author: pengcheng.tan
  * date: 2019-09-25
  */
-class SwipeToRemoveAdapter<D, Binding : ViewDataBinding>(
-    adapterSpec: AdapterSpec<D, Binding>,
-    val deleteIcon: Drawable? = null,
-    val background: Drawable
-) : BaseAdapter<D, Binding>(adapterSpec) {
+class SwipeToRemoveAdapter<D, Binding : ViewDataBinding> : BaseAdapter<D, Binding> {
+
+    private val callback: ItemTouchHelper.SimpleCallback
+
+    constructor(adapterSpec: AdapterSpec<D, Binding>, deleteIcon: Drawable?, background: Drawable) : super(adapterSpec) {
+        this.callback = DefaultSwipeRemoveCallBack(
+            deleteIcon = deleteIcon,
+            background = background
+        )
+    }
+
+    constructor(adapterSpec: AdapterSpec<D, Binding>, callback: ItemTouchHelper.SimpleCallback) : super(adapterSpec) {
+        this.callback = callback
+    }
+
+    fun requestSwipeRemove(position: Int) {
+        adapterSpec.swipeRemove(position, getItem(position))
+    }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
-        val itemTouchHelper = ItemTouchHelper(
-            SwipeToRemoveCallBack(
-                deleteIcon = deleteIcon,
-                background = background,
-                removeCallBack = { position -> adapterSpec.swipeRemove(position, getItem(position)) }
-            )
-        )
+        val itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
     }
-
 }
 
-class SwipeToRemoveCallBack(
+abstract class BaseSwipeRemoveCallback(
+    dragDirs: Int = ItemTouchHelper.LEFT,
+    swipeDirs: Int = ItemTouchHelper.LEFT
+) : ItemTouchHelper.SimpleCallback(dragDirs, swipeDirs) {
+    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+        val p = viewHolder.adapterPosition
+        val adapter = (viewHolder.itemView.parent as? RecyclerView)?.adapter as SwipeToRemoveAdapter<*, *>
+        adapter.requestSwipeRemove(p)
+    }
+}
+
+class DefaultSwipeRemoveCallBack(
     val deleteIcon: Drawable?,
-    val background: Drawable,
-    val removeCallBack: (position: Int) -> Unit
-) : ItemTouchHelper.SimpleCallback(ItemTouchHelper.LEFT, ItemTouchHelper.LEFT) {
+    val background: Drawable
+) : BaseSwipeRemoveCallback() {
 
     val clearPaint: Paint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
 
@@ -97,13 +113,8 @@ class SwipeToRemoveCallBack(
         target: RecyclerView.ViewHolder
     ): Boolean = false
 
-    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        removeCallBack(viewHolder.adapterPosition)
-    }
-
     private fun clearCanvas(c: Canvas?, left: Float, top: Float, right: Float, bottom: Float) {
         c?.drawRect(left, top, right, bottom, clearPaint)
     }
-
 
 }
