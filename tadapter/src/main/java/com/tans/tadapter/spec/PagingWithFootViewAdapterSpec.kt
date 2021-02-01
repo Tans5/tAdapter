@@ -6,16 +6,12 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.tans.tadapter.core.Output
+import com.tans.tadapter.core.Stateable
 import io.reactivex.Observable
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
-import java.util.concurrent.TimeUnit
 
 /**
  *
@@ -34,9 +30,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val loadNextPage: () -> Unit = { },
     val initShowLoading: Boolean = false
 ) : BaseAdapterSpec<SumAdapterDataItem<SumAdapterDataItem<D, PagingWithFootViewState.LoadingMore>, PagingWithFootViewState.Error>, ViewDataBinding>(),
-    Output<PagingWithFootViewState> {
-
-    override val outputSubject: Subject<PagingWithFootViewState> = Output.defaultOutputSubject(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading)
+    Stateable<PagingWithFootViewState> by Stateable(if (initShowLoading) PagingWithFootViewState.LoadingMore else PagingWithFootViewState.InitLoading) {
 
     val lastItemShowSubject: Subject<Unit> = PublishSubject.create<Unit>().toSerialized()
 
@@ -65,7 +59,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
     val loadingAdapterSpec = SimpleAdapterSpec<PagingWithFootViewState.LoadingMore, LBinding>(
         layoutId = loadingLayoutId,
         bindData = { _, _, _ -> Unit },
-        dataUpdater = bindOutputState()
+        dataUpdater = bindState()
             .distinctUntilChanged()
             .map { state ->
                 if (state is PagingWithFootViewState.LoadingMore) {
@@ -84,7 +78,7 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
                 binding
             )
         },
-        dataUpdater = bindOutputState().distinctUntilChanged()
+        dataUpdater = bindState().distinctUntilChanged()
             .map { state ->
                 if (state is PagingWithFootViewState.Error) {
                     listOf(state)
@@ -130,13 +124,13 @@ class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
         combineAdapterSpec.adapterAttachToRecyclerView(recyclerView)
         recyclerView.addOnScrollListener(recyclerViewScrollListener)
         loadingStateUpdater.distinctUntilChanged()
-            .flatMapCompletable { newState ->
+            .flatMapSingle { newState ->
                 updateState { newState }
             }
             .bindLife()
 
         lastItemShowSubject
-            .withLatestFrom(bindOutputState())
+            .withLatestFrom(bindState())
             .map { it.second }
             .filter { it == PagingWithFootViewState.LoadingMore }
             .doOnNext {

@@ -8,47 +8,45 @@ import io.reactivex.Single
 import io.reactivex.disposables.CompositeDisposable
 
 interface BindLife {
-
     val lifeCompositeDisposable: CompositeDisposable
 
     fun <T> Observable<T>.bindLife() {
         lifeCompositeDisposable.add(this.subscribe({
-            Log.d("tAdapter", "Next: ${it.toString()}")
+            Log.d(this@BindLife.javaClass.name, "Next: ${it.toString()}")
         }, {
-            Log.e("tAdapter", it.toString())
+            Log.e(this@BindLife.javaClass.name, it.toString())
         }, {
-            Log.d("tAdapter","Complete")
+            Log.d(this@BindLife.javaClass.name,"Complete")
         }))
     }
 
     fun Completable.bindLife() {
         lifeCompositeDisposable.add(this.subscribe({
-            Log.d("tAdapter","Complete")
+            Log.d(this@BindLife.javaClass.name,"Complete")
         }, {
-            Log.d("tAdapter", it.toString())
+            Log.d(this@BindLife.javaClass.name, it.toString())
         }))
     }
 
     fun <T> Single<T>.bindLife() {
         lifeCompositeDisposable.add(this.subscribe({
-            Log.d("tAdapter", it.toString())
+            Log.d(this@BindLife.javaClass.name, it.toString())
         }, {
-            Log.d("tAdapter", it.toString())
+            Log.d(this@BindLife.javaClass.name, it.toString())
         }))
     }
 
     fun <T> Maybe<T>.bindLife() {
         lifeCompositeDisposable.add(this.subscribe ({
-            Log.d("tAdapter","Success: $it")
+            Log.d(this@BindLife.javaClass.name,"Success: $it")
         }, {
-            Log.d("tAdapter", it.toString())
+            Log.d(this@BindLife.javaClass.name, it.toString())
         }, {
-            Log.d("tAdapter","Complete")
+            Log.d(this@BindLife.javaClass.name,"Complete")
         }))
     }
-
 }
 
-fun BindLife() = object : BindLife {
+fun BindLife(): BindLife = object : BindLife {
     override val lifeCompositeDisposable: CompositeDisposable = CompositeDisposable()
 }
