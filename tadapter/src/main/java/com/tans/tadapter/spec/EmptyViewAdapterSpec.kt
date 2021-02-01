@@ -21,23 +21,15 @@ import io.reactivex.subjects.Subject
 class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
     val emptyLayout: Int,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
-    val initShowEmpty: Boolean = false) : BaseAdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding>() {
+    val emptyChecker: Observable<List<Unit>>) : BaseAdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding>() {
 
 
-    val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(
+    private val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(
             layoutId = emptyLayout,
-            dataUpdater = dataAdapterSpec.dataUpdater
-                    .skip(if (initShowEmpty) 0 else 1)
-                    .map { dataList ->
-                        if (dataList.isEmpty()) {
-                            listOf(Unit)
-                        } else {
-                            emptyList()
-                        }
-                    }
+            dataUpdater = emptyChecker
     )
 
-    val combineAdapterSpec = dataAdapterSpec + emptyAdapterSpec
+    private val combineAdapterSpec = dataAdapterSpec + emptyAdapterSpec
 
     override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: SumAdapterDataItem<D, Unit>) -> Single<Unit>>?> = combineAdapterSpec.itemClicks
 
@@ -77,8 +69,30 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
 }
 
-fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyView(emptyLayout: Int, initShowEmpty: Boolean = false)
-        : AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> = EmptyViewAdapterSpec<D, DBinding, EBinding>(
+fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyView(
+    emptyLayout: Int,
+    initShowEmpty: Boolean = false
+): AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> =
+    EmptyViewAdapterSpec<D, DBinding, EBinding>(
         emptyLayout = emptyLayout,
         dataAdapterSpec = this,
-        initShowEmpty = initShowEmpty)
+        emptyChecker = this.dataUpdater
+            .skip(if (initShowEmpty) 0 else 1)
+            .map { dataList ->
+                if (dataList.isEmpty()) {
+                    listOf(Unit)
+                } else {
+                    emptyList()
+                }
+            })
+
+
+fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyViewCustomChecker(
+    emptyLayout: Int,
+    emptyChecker: Observable<List<Unit>>
+): AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> =
+    EmptyViewAdapterSpec<D, DBinding, EBinding>(
+        emptyLayout = emptyLayout,
+        dataAdapterSpec = this,
+        emptyChecker = emptyChecker
+    )

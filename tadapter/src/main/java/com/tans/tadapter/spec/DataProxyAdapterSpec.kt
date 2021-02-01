@@ -10,7 +10,7 @@ import io.reactivex.Single
 
 
 class DataProxyAdapterSpec<D, Binding : ViewDataBinding>(
-    val realAdapterSpec: AdapterSpec<D, Binding>,
+    private val realAdapterSpec: AdapterSpec<D, Binding>,
     othersDataUpdater: Observable<List<D>>) : BaseAdapterSpec<D, Binding>() {
 
     override val differHandler: DifferHandler<D> = realAdapterSpec.differHandler
