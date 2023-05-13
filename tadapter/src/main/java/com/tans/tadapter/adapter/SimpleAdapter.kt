@@ -9,5 +9,5 @@ import com.tans.tadapter.spec.AdapterSpec
  * date: 2019-09-25
  */
 
-class SimpleAdapter<D, Binding : ViewDataBinding>(adapterSpec: AdapterSpec<D, Binding>, onChangeCommit: (list: List<D>) -> Unit = {})
+class SimpleAdapter<D : Any, Binding : ViewDataBinding>(adapterSpec: AdapterSpec<D, Binding>, onChangeCommit: (list: List<D>) -> Unit = {})
     : BaseAdapter<D, Binding>(adapterSpec, onChangeCommit)

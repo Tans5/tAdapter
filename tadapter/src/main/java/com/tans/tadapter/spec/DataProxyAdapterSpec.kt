@@ -5,13 +5,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 
 
-class DataProxyAdapterSpec<D, Binding : ViewDataBinding>(
+class DataProxyAdapterSpec<D : Any, Binding : ViewDataBinding>(
     private val realAdapterSpec: AdapterSpec<D, Binding>,
-    othersDataUpdater: Observable<List<D>>) : BaseAdapterSpec<D, Binding>() {
+    othersDataUpdater: Observable<List<D>>
+) : BaseAdapterSpec<D, Binding>() {
 
     override val differHandler: DifferHandler<D> = realAdapterSpec.differHandler
 

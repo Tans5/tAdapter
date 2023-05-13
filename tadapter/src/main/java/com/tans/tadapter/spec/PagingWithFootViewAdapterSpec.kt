@@ -7,11 +7,11 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.core.Stateable
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.rxkotlin.withLatestFrom
-import io.reactivex.subjects.PublishSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.kotlin.withLatestFrom
+import io.reactivex.rxjava3.subjects.PublishSubject
+import io.reactivex.rxjava3.subjects.Subject
 
 /**
  *
@@ -19,7 +19,7 @@ import io.reactivex.subjects.Subject
  * date: 2019-09-17
  */
 
-private class PagingWithFootViewAdapterSpec<D, DBinding : ViewDataBinding,
+private class PagingWithFootViewAdapterSpec<D : Any, DBinding : ViewDataBinding,
         LBinding : ViewDataBinding,
         EBinding : ViewDataBinding>(
     val loadingLayoutId: Int,
@@ -160,7 +160,7 @@ sealed class PagingWithFootViewState {
     class Error(val e: Throwable) : PagingWithFootViewState()
 }
 
-private fun <D, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
+private fun <D : Any, DBinding : ViewDataBinding, LBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.pagingWithFootView(
     loadingLayoutId: Int,
     errorLayoutId: Int,
     loadingStateUpdater: Observable<PagingWithFootViewState>,

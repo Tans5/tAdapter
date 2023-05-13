@@ -8,15 +8,12 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 
 typealias BindingGetter<Binding> = (context: Context, parent: ViewGroup, layoutId: Int, viewType: Int) -> Binding
 
-class SimpleAdapterSpec<D, Binding : ViewDataBinding>(
+class SimpleAdapterSpec<D : Any, Binding : ViewDataBinding>(
     val layoutId: Int,
     override val bindData: ((Int, D, Binding) -> Unit) = { _, _, _ -> Unit },
     override val bindDataPayload: (position: Int, data: D, binding: Binding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },

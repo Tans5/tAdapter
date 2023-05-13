@@ -6,12 +6,13 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.rxkotlin.withLatestFrom
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.kotlin.withLatestFrom
 import java.lang.RuntimeException
 
-class SumAdapterSpec<LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding>(
+@Suppress("UNCHECKED_CAST")
+class SumAdapterSpec<LD : Any, RD : Any, LBinding : ViewDataBinding, RBinding : ViewDataBinding>(
         val leftSpec: AdapterSpec<LD, LBinding>,
         val rightSpec: AdapterSpec<RD, RBinding>
 ) : BaseAdapterSpec<SumAdapterDataItem<LD, RD>, ViewDataBinding>() {
@@ -265,6 +266,6 @@ sealed class SumAdapterDataItem<Left, Right> {
     }
 }
 
-operator fun <LD, RD, LBinding : ViewDataBinding, RBinding : ViewDataBinding> AdapterSpec<LD, LBinding>.plus(
+operator fun <LD : Any, RD : Any, LBinding : ViewDataBinding, RBinding : ViewDataBinding> AdapterSpec<LD, LBinding>.plus(
         right: AdapterSpec<RD, RBinding>
 ) = SumAdapterSpec(leftSpec = this, rightSpec = right)

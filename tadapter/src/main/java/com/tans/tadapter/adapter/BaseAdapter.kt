@@ -5,16 +5,16 @@ import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.rxbinding3.view.clicks
+import com.jakewharton.rxbinding4.view.clicks
 import com.tans.tadapter.core.BindLife
 import com.tans.tadapter.spec.AdapterSpec
-import io.reactivex.Observable
-import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 
-abstract class BaseAdapter<D, Binding : ViewDataBinding>(
+abstract class BaseAdapter<D : Any, Binding : ViewDataBinding>(
     protected val adapterSpec: AdapterSpec<D, Binding>,
     val onChangeCommit: (list: List<D>) -> Unit = {},
 ) : ListAdapter<D, BaseViewHolder<Binding>>(adapterSpec.differHandler), BindLife by BindLife(),
@@ -98,7 +98,7 @@ abstract class BaseAdapter<D, Binding : ViewDataBinding>(
     }
 }
 
-open class DifferHandler<D>(
+open class DifferHandler<D : Any>(
     val itemsTheSame: (oldItem: D, newItem: D) -> Boolean = { o, n -> o == n },
     val contentTheSame: (oldItem: D, newItem: D) -> Boolean = { o, n -> o == n },
     val changePayLoad: (oldItem: D, newItem: D) -> Any? = { _, _ -> null }

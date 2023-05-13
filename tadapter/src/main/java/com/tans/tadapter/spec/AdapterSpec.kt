@@ -10,16 +10,12 @@ import com.tans.tadapter.adapter.BaseAdapter
 import com.tans.tadapter.adapter.DifferHandler
 import com.tans.tadapter.adapter.SimpleAdapter
 import com.tans.tadapter.adapter.SwipeToRemoveAdapter
-import com.tans.tadapter.core.BindLife
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.internal.subscriptions.SubscriptionHelper.cancel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 
 typealias ItemClick<Binding, D> = ((binding: Binding, type: Int) -> (Pair<View, (position: Int, data: D) -> Single<Unit>>?))
 
-interface AdapterSpec<D, Binding : ViewDataBinding> {
+interface AdapterSpec<D : Any, Binding : ViewDataBinding> {
 
     val differHandler: DifferHandler<D>
 
@@ -51,10 +47,10 @@ interface AdapterSpec<D, Binding : ViewDataBinding> {
 
 }
 
-fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter(onChangeCommit: (list: List<D>) -> Unit = {})
+fun <D : Any, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toAdapter(onChangeCommit: (list: List<D>) -> Unit = {})
         : BaseAdapter<D, Binding> = SimpleAdapter(this, onChangeCommit)
 
-fun <D, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
+fun <D : Any, Binding : ViewDataBinding> AdapterSpec<D, Binding>.toSwipeDeleteAdapter(
     deleteIcon: Drawable? = null,
     background: Drawable,
     onChangeCommit: (list: List<D>) -> Unit

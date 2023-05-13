@@ -6,11 +6,8 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 
 /**
  *
@@ -18,10 +15,11 @@ import io.reactivex.subjects.Subject
  * date: 2019-09-24
  */
 
-class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
+class EmptyViewAdapterSpec<D : Any, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
     val emptyLayout: Int,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
-    val emptyChecker: Observable<List<Unit>>) : BaseAdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding>() {
+    val emptyChecker: Observable<List<Unit>>
+) : BaseAdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding>() {
 
 
     private val emptyAdapterSpec: SimpleAdapterSpec<Unit, EBinding> = SimpleAdapterSpec(
@@ -69,7 +67,7 @@ class EmptyViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
 }
 
-fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyView(
+fun <D : Any, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyView(
     emptyLayout: Int,
     initShowEmpty: Boolean = false
 ): AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> =
@@ -87,7 +85,7 @@ fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, D
             })
 
 
-fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyViewCustomChecker(
+fun <D : Any, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.emptyViewCustomChecker(
     emptyLayout: Int,
     emptyChecker: Observable<List<Unit>>
 ): AdapterSpec<SumAdapterDataItem<D, Unit>, ViewDataBinding> =

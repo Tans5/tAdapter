@@ -15,7 +15,7 @@ import com.tans.tadapter.spec.AdapterSpec
  * author: pengcheng.tan
  * date: 2019-09-25
  */
-class SwipeToRemoveAdapter<D, Binding : ViewDataBinding> : BaseAdapter<D, Binding> {
+class SwipeToRemoveAdapter<D : Any, Binding : ViewDataBinding> : BaseAdapter<D, Binding> {
 
     private val callback: ItemTouchHelper.SimpleCallback
 

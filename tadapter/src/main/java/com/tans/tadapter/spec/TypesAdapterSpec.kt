@@ -6,11 +6,8 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import kotlin.RuntimeException
 
 /**
@@ -19,17 +16,17 @@ import kotlin.RuntimeException
  * date: 2019-09-16
  */
 
-private class TypesAdapterSpec<D>(
-        val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
-        val typeHandler: (D) -> Int,
-        override val bindData: (Int, D, ViewDataBinding) -> Unit,
-        override val bindDataPayload: (position: Int, data: D, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },
-        override val dataUpdater: Observable<List<D>>,
-        override val differHandler: DifferHandler<D> = DifferHandler(),
-        override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
-        override val hasStableIds: Boolean = false,
-        override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList(),
-        override val swipeRemove: (position: Int, data: D) -> Unit = { _, _ -> }
+private class TypesAdapterSpec<D : Any>(
+    val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
+    val typeHandler: (D) -> Int,
+    override val bindData: (Int, D, ViewDataBinding) -> Unit,
+    override val bindDataPayload: (position: Int, data: D, binding: ViewDataBinding, payloads: List<Any>) -> Boolean = { _, _, _, _ -> false },
+    override val dataUpdater: Observable<List<D>>,
+    override val differHandler: DifferHandler<D> = DifferHandler(),
+    override val itemId: (position: Int, data: D) -> Long = { _, _ -> RecyclerView.NO_ID },
+    override val hasStableIds: Boolean = false,
+    override val itemClicks: List<(binding: ViewDataBinding, type: Int) -> Pair<View, (position: Int, data: D) -> Single<Unit>>?> = emptyList(),
+    override val swipeRemove: (position: Int, data: D) -> Unit = { _, _ -> }
 ) : BaseAdapterSpec<D, ViewDataBinding>() {
 
     override fun itemType(position: Int, item: D): Int {

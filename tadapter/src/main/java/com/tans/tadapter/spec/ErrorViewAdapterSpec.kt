@@ -6,12 +6,9 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
 import com.tans.tadapter.adapter.DifferHandler
-import io.reactivex.Observable
-import io.reactivex.Single
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
-import io.reactivex.subjects.Subject
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.subjects.PublishSubject
 
 /**
  *
@@ -19,7 +16,7 @@ import io.reactivex.subjects.Subject
  * date: 2019-09-24
  */
 
-class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
+class ErrorViewAdapterSpec<D : Any, DBinding : ViewDataBinding, EBinding : ViewDataBinding>(
     val errorLayout: Int,
     val dataAdapterSpec: AdapterSpec<D, DBinding>,
     val errorChecker: Observable<Throwable>,
@@ -83,7 +80,7 @@ class ErrorViewAdapterSpec<D, DBinding : ViewDataBinding, EBinding : ViewDataBin
 
 }
 
-fun <D, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.errorView(
+fun <D : Any, DBinding : ViewDataBinding, EBinding : ViewDataBinding> AdapterSpec<D, DBinding>.errorView(
         errorLayout: Int,
         errorChecker: Observable<Throwable>,
         bindDataError: (Int, Throwable, EBinding) -> Unit = { _, _, _ -> Unit }
