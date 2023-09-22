@@ -16,7 +16,7 @@ import kotlin.RuntimeException
  * date: 2019-09-16
  */
 
-private class TypesAdapterSpec<D : Any>(
+class TypesAdapterSpec<D : Any>(
     val layoutIdAndBinding: Map<Int, (parent: ViewGroup) -> ViewDataBinding>,
     val typeHandler: (D) -> Int,
     override val bindData: (Int, D, ViewDataBinding) -> Unit,
